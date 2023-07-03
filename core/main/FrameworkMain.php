@@ -1,8 +1,17 @@
 <?php
 
-include "core/config/globalsConfig.php";
-include "core/initApplication.php";
+namespace core\main;
 
+use core\config\GlobalConfig as gloablConfig;
+use core\ApplicationClass;
+use PDO;
+
+spl_autoload_register(function ($className) {
+    $fileName = str_replace("\\", '/', $className) . '.php';
+    if (file_exists($fileName)) {
+        require_once($fileName);
+    }
+});
 
 class FrameworkMain
 {
@@ -33,7 +42,7 @@ class FrameworkMain
 
     protected static function setApiHeaders()
     {
-        foreach (API_HEADERS as $header) {
+        foreach (gloablConfig::getArryHeaders() as $header) {
             header($header);
         }
     }

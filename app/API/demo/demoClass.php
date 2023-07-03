@@ -1,8 +1,17 @@
 <?php
 
-include "../../../core/main/frameworkMainCore.php";
+namespace app\api\demo;
 
-class DemoClass extends FrameworkMain
+use core\main\FrameworkMain;
+
+spl_autoload_register(function ($className) {
+    $fileName = str_replace("\\", '/', $className) . '.php';
+    if (file_exists($fileName)) {
+        require_once($fileName);
+    }
+});
+
+class DemoClass
 {
 
     public string $table = "tbl_demo";
@@ -25,7 +34,9 @@ class DemoClass extends FrameworkMain
 
     protected function getCurrentElement($id)
     {
-        $element = self::getAllDataBy($this->table, "demo_id = {$id}");
+        $element = new FrameworkMain;
+
+        $element->getAllDataBy($this->table, "demo_id = {$id}");
 
         return $element;
     }

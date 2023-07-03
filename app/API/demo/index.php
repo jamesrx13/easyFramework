@@ -1,14 +1,22 @@
 <?php
 
+// spl_autoload_register(function ($className) {
+//     $fileName = str_replace("\\", '/', $className) . '.php';
+//     if (file_exists($fileName)) {
+//         echo $fileName;
+//         require_once($fileName);
+//     }
+// });
+require_once("../../../core/main/FrameworkMain.php");
+
+use core\main\FrameworkMain;
+
+
 // RUTAS
 // const ROUTER = [
 //     "/" => ""
 // ];
 
-include "demoClass.php";
-
-$demoElement = new DemoClass();
-
 FrameworkMain::genericApiResponse([
-    "element" => $demoElement
+    "element" => "HOLA",
 ]);
