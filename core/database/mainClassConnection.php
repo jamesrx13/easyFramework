@@ -28,7 +28,7 @@ class DbConnectionMainClass
                 "status" => false,
                 "msg" => "Unable to use assigned configuration",
             ];
-            exit;
+            die();
         }
     }
 
@@ -40,7 +40,7 @@ class DbConnectionMainClass
             $this->newControllerPDO = $PDOconnection;
             return [
                 "status" => true,
-                "elementPDO" => $PDOconnection,
+                "msg" => "Successful connection to the database",
             ];
         } catch (\Throwable $th) {
             return [
@@ -53,5 +53,13 @@ class DbConnectionMainClass
     public function initDatabase()
     {
         return self::validateConnectionOnDataBase();
+    }
+
+    public function getDataBase()
+    {
+        return [
+            "status" => is_null($this->newControllerPDO) ? false : true,
+            "dataBase" => $this->newControllerPDO,
+        ];
     }
 }

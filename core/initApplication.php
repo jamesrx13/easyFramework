@@ -4,23 +4,29 @@ include "database/mainClassConnection.php";
 include "utils/main.php";
 include "config/databaseConfig.php";
 
-class InitAplicationClass
+class ApplicationClass
 {
 
-    private $config = null;
+    private $dataBase = null;
 
     function __construct()
     {
-        if (is_local()) {
-            $this->config = DATBASE_DEFAULT_CONFIG_LOCAL;
-        } else {
-            $this->config = DATBASE_CONFIG_PRODUCTION;
-        }
+        self::run();
     }
 
-    public function run()
+    protected function run()
     {
-        $runDbConnection = new DbConnectionMainClass($this->config);
-        return $runDbConnection->initDatabase();
+        if (is_local()) {
+            $dataBase = new DbConnectionMainClass(DATBASE_DEFAULT_CONFIG_LOCAL);
+        } else {
+            $dataBase = new DbConnectionMainClass(DATBASE_CONFIG_PRODUCTION);
+        }
+        $dataBase->initDatabase();
+        $this->dataBase = $dataBase->getDataBase();
+    }
+
+    public function dataBase()
+    {
+        return $this->dataBase;
     }
 }
