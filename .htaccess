@@ -1,0 +1,8 @@
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteBase /easyFramework/
+
+    # La solicitud independientemente de la URL siempre va a redireccionar al Index
+
+    RewriteRule ^ index.php [L]
+</IfModule>

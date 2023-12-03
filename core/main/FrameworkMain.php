@@ -4,6 +4,7 @@ namespace core\main;
 
 use core\config\GlobalConfig as gloablConfig;
 use core\ApplicationClass;
+use core\utils\Utils;
 use PDO;
 
 spl_autoload_register(function ($className) {
@@ -104,6 +105,35 @@ class FrameworkMain
                 "status" => false,
                 "msg" => "Database error",
             ]);
+        }
+    }
+
+    public static function getApiRoute($request_uri)
+    {
+        $request_uri =  explode("/api/", $request_uri);
+
+        $request_uri = explode("/", $request_uri[1]);
+
+        return (object) [
+            'route' => $request_uri[0],
+            'operation' => $request_uri[1],
+        ];
+    }
+
+    public static function validateMethod($method)
+    {
+        $method = strtolower($method);
+
+        if ($method == 'get') {
+            return Utils::OnlyGetRequest();
+        } elseif ($method == 'post') {
+            return Utils::OnlyPostRequest();
+        } elseif ($method == 'put') {
+            return Utils::OnlyPutRequest();
+        } elseif ($method == 'delete') {
+            return Utils::OnlyDeleteRequest();
+        } else {
+            return false;
         }
     }
 }
