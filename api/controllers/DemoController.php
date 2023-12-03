@@ -10,7 +10,7 @@ class DemoController
     public static function list()
     {
         $model = new DemoModel();
-        FrameworkMain::genericApiResponse($model->getAll());
+        FrameworkMain::genericApiResponse($model->getAll(false));
     }
 
     public static function createdFnt()
