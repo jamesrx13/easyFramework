@@ -112,12 +112,33 @@ class FrameworkMain
     {
         $request_uri =  explode("/api/", $request_uri);
 
-        $request_uri = explode("/", $request_uri[1]);
+        if (count($request_uri) > 0) {
 
-        return (object) [
-            'route' => $request_uri[0],
-            'operation' => $request_uri[1],
-        ];
+            if ($request_uri[1] != '') {
+                $request_uri = explode("/", $request_uri[1]);
+                if (count($request_uri) > 0) {
+                    return (object) [
+                        'route' => $request_uri[0],
+                        'operation' => $request_uri[1],
+                    ];
+                } else {
+                    return (object) [
+                        'route' => '',
+                        'operation' => '',
+                    ];
+                }
+            } else {
+                return (object) [
+                    'route' => '',
+                    'operation' => '',
+                ];
+            }
+        } else {
+            return (object) [
+                'route' => '',
+                'operation' => '',
+            ];
+        }
     }
 
     public static function validateMethod($method)
