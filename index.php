@@ -10,6 +10,7 @@ use api\ApiRouter;
 use core\main\FrameworkMain;
 use core\ApplicationClass;
 use core\config\GlobalConfig;
+use core\utils\Utils;
 
 spl_autoload_register(function ($className) {
     $fileName = str_replace("\\", "/", $className) . '.php';
@@ -30,7 +31,7 @@ extract($application);
 
 $request_uri = $_SERVER['REQUEST_URI'];
 
-if (strpos($request_uri, '/api/')) {
+if (strpos($request_uri, '/api/') && $status) {
     $route = FrameworkMain::getApiRoute($request_uri);
     $apiRouter = new ApiRouter();
 
@@ -38,25 +39,23 @@ if (strpos($request_uri, '/api/')) {
 
         $controller = ucfirst($route->route) . 'Controller';
 
-        include 'api/controllers/' . $controller . '.php';
+        if (file_exists('api/controllers/' . $controller . '.php')) {
+            include 'api/controllers/' . $controller . '.php';
 
-        $controller = new $controller;
+            $controller = new $controller;
 
-        $routerOperations = $controller::routes($route->operation);
+            $routerOperations = $controller::routes($route->operation);
 
-        if (FrameworkMain::validateMethod($routerOperations->method)) {
-            $controller->{$routerOperations->fnt}();
+            if (FrameworkMain::validateMethod($routerOperations->method)) {
+                $controller->{$routerOperations->fnt}();
+            } else {
+                Utils::RouteNotFound();
+            }
         } else {
-            FrameworkMain::genericApiResponse([
-                "status" => false,
-                "msg" => "Route not found",
-            ]);
+            Utils::RouteNotFound();
         }
     } else {
-        FrameworkMain::genericApiResponse([
-            "status" => false,
-            "msg" => "Route not found",
-        ]);
+        Utils::RouteNotFound();
     }
 } else {
     FrameworkMain::genericApiResponse([

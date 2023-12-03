@@ -2,6 +2,8 @@
 
 namespace core\utils;
 
+use core\main\FrameworkMain;
+
 class Utils
 {
     public static function is_local()
@@ -44,5 +46,13 @@ class Utils
     public static function OnlyDeleteRequest()
     {
         return $_SERVER['REQUEST_METHOD'] == "DELETE" ? true : false;
+    }
+
+    public static function RouteNotFound()
+    {
+        FrameworkMain::genericApiResponse([
+            "status" => false,
+            "msg" => "Route not found",
+        ]);
     }
 }

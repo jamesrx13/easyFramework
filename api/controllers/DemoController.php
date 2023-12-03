@@ -1,6 +1,7 @@
 <?php
 
 use core\main\FrameworkMain;
+use core\utils\Utils;
 
 class DemoController
 {
@@ -31,10 +32,7 @@ class DemoController
         ];
 
         if (!array_key_exists($operation, $operations)) {
-            FrameworkMain::genericApiResponse([
-                "status" => false,
-                "msg" => "Route not found",
-            ]);
+            Utils::RouteNotFound();
             die();
         }
 
