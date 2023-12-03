@@ -7,7 +7,6 @@ class ApiRouter
 
     protected array $apiRouter = [
         'demo' => [],
-        'clientes' => [],
     ];
 
     public function AllApiRouters()

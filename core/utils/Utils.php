@@ -55,4 +55,27 @@ class Utils
             "msg" => "Route not found",
         ]);
     }
+
+    public static function validateRequestParams($requiredParams)
+    {
+        foreach ($requiredParams as $param) {
+            if (!isset($_REQUEST[$param]) || empty($_REQUEST[$param])) {
+                FrameworkMain::genericApiResponse([
+                    "status" => false,
+                    "msg" => "El patametro '{$param}' es requerido.",
+                ]);
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public static function getRequestParams($params)
+    {
+        $data = [];
+        foreach ($params as $param) {
+            $data[$param] = $_REQUEST[$param];
+        }
+        return $data;
+    }
 }

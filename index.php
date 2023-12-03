@@ -32,8 +32,10 @@ extract($application);
 $request_uri = $_SERVER['REQUEST_URI'];
 
 if (strpos($request_uri, '/api/') && $status) {
+    $request_uri = substr($request_uri, -1) === '/' ? $request_uri : $request_uri . '/';
     $route = FrameworkMain::getApiRoute($request_uri);
     $apiRouter = new ApiRouter();
+
 
     if ($route->route != '' && $apiRouter->existRoute($route->route)) {
 
@@ -44,10 +46,22 @@ if (strpos($request_uri, '/api/') && $status) {
 
             $controller = new $controller;
 
+            $route->operation = explode('?', $route->operation);
+
+            if (count($route->operation) > 1) {
+                $route->operation = $route->operation[0];
+            } else {
+                $route->operation = implode('?', $route->operation);
+            }
+
             $routerOperations = $controller::routes($route->operation);
 
-            if (FrameworkMain::validateMethod($routerOperations->method)) {
-                $controller->{$routerOperations->fnt}();
+            if (isset($routerOperations->method) && isset($routerOperations->fnt)) {
+                if (FrameworkMain::validateMethod($routerOperations->method)) {
+                    $controller->{$routerOperations->fnt}();
+                } else {
+                    Utils::RouteNotFound();
+                }
             } else {
                 Utils::RouteNotFound();
             }

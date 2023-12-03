@@ -48,11 +48,15 @@ class FrameworkMain
         }
     }
 
-    public function getAllData($table)
+    public function getAllData($table, $autoResponse = true)
     {
         if ($table != "") {
             $sql = "SELECT * FROM {$table}";
-            self::executeQuery($sql);
+            if ($autoResponse) {
+                self::executeQuery($sql);
+            } else {
+                return self::executeQueryNoResponse($sql);
+            }
         } else {
             self::genericApiResponse([
                 "status" => false,
@@ -61,11 +65,15 @@ class FrameworkMain
         }
     }
 
-    public function getAllDataBy($table, $whereCondition)
+    public function getAllDataBy($table, $whereCondition, $autoResponse = true)
     {
         if ($table != "" && $whereCondition != "") {
             $sql = "SELECT * FROM {$table} WHERE {$whereCondition}";
-            self::executeQuery($sql);
+            if ($autoResponse) {
+                self::executeQuery($sql);
+            } else {
+                return self::executeQueryNoResponse($sql);
+            }
         } else {
             self::genericApiResponse([
                 "status" => false,
@@ -105,6 +113,41 @@ class FrameworkMain
                 "status" => false,
                 "msg" => "Database error",
             ]);
+        }
+    }
+
+    public function executeQueryNoResponse($sql, $data = [])
+    {
+        extract($this->db);
+
+        if ($status) {
+            try {
+                $prepareQuery = $dataBase->prepare($sql);
+
+                if ($prepareQuery->execute($data)) {
+                    $queryResult = $prepareQuery->fetchAll(PDO::FETCH_ASSOC);
+                    return [
+                        "status" => true,
+                        "totalElements" => count($queryResult),
+                        "data" => $queryResult,
+                    ];
+                } else {
+                    return [
+                        "status" => false,
+                        "msg" => "Wrong request"
+                    ];
+                }
+            } catch (\Throwable $th) {
+                return [
+                    "status" => false,
+                    "msg" => $th->getMessage(),
+                ];
+            }
+        } else {
+            return [
+                "status" => false,
+                "msg" => "Database error",
+            ];
         }
     }
 
@@ -156,5 +199,10 @@ class FrameworkMain
         } else {
             return false;
         }
+    }
+
+    public function getDB()
+    {
+        return $this->db;
     }
 }
