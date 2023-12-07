@@ -21,8 +21,13 @@ class FrameworkConsole
 
     public function run($argv)
     {
-        $command = $argv[1];
+        $command = isset($argv[1]) ? $argv[1] : null;
         $param = isset($argv[2]) ? $argv[2] : null;
+
+        if ($command == null) {
+            echo 'Error => Una instrucción como minimo es requerida.';
+            die();
+        }
 
         if ($command == 'migrate') {
             if ($param != null && $param == 'all') {
@@ -30,7 +35,7 @@ class FrameworkConsole
             } elseif ($param != null) {
                 $this->migrate($param);
             } else {
-                echo 'Error => La acción de migración requiere un parámetro, por ejemplo: migrate all o migrate %MODEL_NAME%';
+                echo 'Error => La acción de migración requiere un parámetro, por ejemplo: "migrate all" o "migrate %MODEL_NAME%"';
                 die();
             }
         } else {
@@ -48,7 +53,7 @@ class FrameworkConsole
             $model_name = str_replace('.php', '', $model);
             $model = '\api\models\\' . $model_name;
             if (class_exists($model)) {
-                $model = new $model();
+                $model = new $model();;
                 $resp = (object) $this->mainController->executeQueryNoResponse($model->generateTableSql());
                 if ($resp->status) {
                     echo "Modelo '{$model_name}' migrado con exito.\n";

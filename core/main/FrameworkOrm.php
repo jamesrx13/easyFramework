@@ -96,6 +96,11 @@ class FrameworkOrm
         $table = static::TABLE;
         $arrayMapper = static::ARRAY_MAPPER;
 
+        $sql = "DROP TABLE IF EXISTS {$table};";
+
+        // Motor de almacenamiento predeterminado
+        $defaultStorageEngine = 'InnoDB';
+
         $columns = [];
         foreach ($arrayMapper as $columnName => $columnDetails) {
             $type = $columnDetails['type'];
@@ -128,7 +133,12 @@ class FrameworkOrm
             $columns[] = $columnDefinition;
         }
 
-        $sql = "CREATE TABLE $table (" . implode(', ', $columns) . ");";
+        // Agregar la opción del motor de almacenamiento por defecto
+        $tableOptions = "ENGINE={$defaultStorageEngine}";
+
+        $sql .= "CREATE TABLE $table ("
+            . implode(', ', $columns)
+            . ") $tableOptions;";
 
         return $sql;
     }
