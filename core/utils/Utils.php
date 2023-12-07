@@ -8,7 +8,13 @@ class Utils
 {
     public static function is_local()
     {
+        if (!isset($_SERVER['HTTP_HOST'])) return false;
         return $_SERVER['HTTP_HOST'] == "localhost" ? true : false;
+    }
+
+    public static function isServer()
+    {
+        return isset($_SERVER['HTTP_HOST']);
     }
 
     public static function getIp()
@@ -77,5 +83,17 @@ class Utils
             $data[$param] = $_REQUEST[$param];
         }
         return $data;
+    }
+
+    public static function getFiles($path)
+    {
+        $files = [];
+        $dir = opendir($path);
+        while ($elemento = readdir($dir)) {
+            if ($elemento != "." && $elemento != "..") {
+                $files[] = $elemento;
+            }
+        }
+        return $files;
     }
 }

@@ -25,7 +25,7 @@ class ApplicationClass
 
     protected function run()
     {
-        if (Utils::is_local()) {
+        if (Utils::is_local() || !Utils::isServer()) {
             $dataBase = new DbConnectionMainClass(DatabaseConfig::getLocalConfig());
         } else {
             $dataBase = new DbConnectionMainClass(DatabaseConfig::getProductionConfig());
