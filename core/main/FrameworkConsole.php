@@ -2,6 +2,9 @@
 
 namespace core\main;
 
+use core\config\GlobalConfig;
+use core\main\models\JwtModel;
+use core\main\models\UserModel;
 use core\utils\Utils;
 
 include 'FrameworkMain.php';
@@ -38,6 +41,8 @@ class FrameworkConsole
                 echo 'Error => La acción de migración requiere un parámetro, por ejemplo: "migrate all" o "migrate %MODEL_NAME%"';
                 die();
             }
+        } elseif ($command == 'auth') {
+            $this->auth();
         } else {
             echo "Error => El comando '{$command}' no existe, por favor revisar la documentación.";
             die();
@@ -93,6 +98,35 @@ class FrameworkConsole
             die();
         }
     }
+
+    private function auth()
+    {
+        $userModel = new UserModel();
+        $jwtModel = new JwtModel();
+        $relation = 'fk_jwt_user_id';
+        $jwtModel->executeMainQuery("ALTER TABLE :table DROP FOREIGN KEY {$relation};");
+        $this->mainController->executeQueryNoResponse($userModel->generateTableSql());
+        $this->mainController->executeQueryNoResponse($jwtModel->generateTableSql());
+
+        foreach (GlobalConfig::defauldAuthUsers() as $user) {
+            $defauldUser = new UserModel();
+            $defauldUser->load(null, $user);
+            $defauldUser->save(false);
+        }
+
+        echo "Se han creado los medios de autenticación con exito.\n\nLos usuarios por defecto son:\n";
+        print_r([
+            [
+                'user' => 'root',
+                'password' => 'root123456',
+            ],
+            [
+                'user' => 'admin',
+                'password' => 'admin123456',
+            ],
+        ]);
+        die();
+    }
 }
 
 // Validamos el estado de conexión de la DB y ejecutamos los comandos
@@ -100,6 +134,6 @@ if ($database->status) {
     $console = new FrameworkConsole();
     $console->run($argv);
 } else {
-    echo 'Error => Los parametros de la base de datos no son correctos.';
+    echo 'Error => No fue posible establecer conexión con la base de datos.';
     die();
 }

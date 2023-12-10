@@ -59,7 +59,7 @@ class FrameworkOrm
     {
         if ($id != null) {
             $data = (object) $this->getAllBy("{$this->getPrimaryColum()} = {$id} LIMIT 1");
-            if ($data->status) {
+            if ($data->status && !empty($data->data)) {
                 $data = $data->data[0];
 
                 foreach (static::ARRAY_MAPPER as $key => $value) {
@@ -102,7 +102,16 @@ class FrameworkOrm
         $defaultStorageEngine = 'InnoDB';
 
         $columns = [];
+        $relations = [];
+
         foreach ($arrayMapper as $columnName => $columnDetails) {
+
+            if (isset($columnDetails['relation'])) {
+                $relationModel = new $columnDetails['relation'];
+                $relations[] = "ALTER TABLE " .  $table . " ADD COLUMN " . $columnName . " INT NOT NULL, ADD CONSTRAINT " . 'fk_' . $table . '_' . $columnName .  " FOREIGN KEY (" . $columnName . ") REFERENCES " . $relationModel::TABLE . " (id) ON DELETE CASCADE ON UPDATE CASCADE;";
+                continue;
+            }
+
             $type = $columnDetails['type'];
 
             // Establecer una longitud predeterminada de 255 para columnas de tipo varchar, text si no se especifica
@@ -130,6 +139,10 @@ class FrameworkOrm
                 $columnDefinition .= " DEFAULT {$columnDetails['default']}";
             }
 
+            if (isset($columnDetails['unique']) && $columnDetails['unique']) {
+                $columnDefinition .= " UNIQUE";
+            }
+
             $columns[] = $columnDefinition;
         }
 
@@ -138,7 +151,7 @@ class FrameworkOrm
 
         $sql .= "CREATE TABLE $table ("
             . implode(', ', $columns)
-            . ") $tableOptions;";
+            . ") $tableOptions;" . implode(' ', $relations);
 
         return $sql;
     }
@@ -158,7 +171,7 @@ class FrameworkOrm
         return $this->frameworkMain->getAllDataBy(static::TABLE, $whereCondition, false);
     }
 
-    private function getPrimaryColum()
+    public function getPrimaryColum()
     {
         foreach (static::ARRAY_MAPPER as $key => $value) {
             if (isset($value['primary']) && $value['primary']) {
@@ -233,5 +246,16 @@ class FrameworkOrm
         } else {
             return $this->frameworkMain->executeQueryNoResponse($sql);
         }
+    }
+
+    public function executeMainQuery($sql)
+    {
+        $sql = str_replace(':table', static::TABLE, $sql);
+        return $this->frameworkMain->executeQueryNoResponse($sql);
+    }
+
+    public function getTable()
+    {
+        return static::TABLE;
     }
 }

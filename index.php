@@ -10,6 +10,7 @@ use api\ApiRouter;
 use core\main\FrameworkMain;
 use core\ApplicationClass;
 use core\config\GlobalConfig;
+use core\main\controllers\AuthController;
 use core\utils\Utils;
 
 spl_autoload_register(function ($className) {
@@ -32,10 +33,10 @@ extract($application);
 $request_uri = $_SERVER['REQUEST_URI'];
 
 if (strpos($request_uri, '/api/') && $status) {
+
     $request_uri = substr($request_uri, -1) === '/' ? $request_uri : $request_uri . '/';
     $route = FrameworkMain::getApiRoute($request_uri);
     $apiRouter = new ApiRouter();
-
 
     if ($route->route != '' && $apiRouter->existRoute($route->route)) {
 
@@ -56,6 +57,13 @@ if (strpos($request_uri, '/api/') && $status) {
 
             $routerOperations = $controller::routes($route->operation);
 
+            if (isset($routerOperations->auth) && $routerOperations->auth) {
+                if (!AuthController::isValidToken()) {
+                    Utils::NotValidToken();
+                    die();
+                }
+            }
+
             if (isset($routerOperations->method) && isset($routerOperations->fnt)) {
                 if (FrameworkMain::validateMethod($routerOperations->method)) {
                     $controller->{$routerOperations->fnt}();
@@ -68,6 +76,15 @@ if (strpos($request_uri, '/api/') && $status) {
         } else {
             Utils::RouteNotFound();
         }
+    } else {
+        Utils::RouteNotFound();
+    }
+} elseif (strpos($request_uri, '/user') && $status) {
+    $request_uri = substr($request_uri, -1) === '/' ? $request_uri : $request_uri . '/';
+    $authFnt = AuthController::routes(FrameworkMain::getApiRoute($request_uri, true));
+
+    if (FrameworkMain::validateMethod($authFnt->method)) {
+        AuthController::{$authFnt->fnt}();
     } else {
         Utils::RouteNotFound();
     }

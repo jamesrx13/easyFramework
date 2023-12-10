@@ -62,6 +62,30 @@ class Utils
         ]);
     }
 
+    public static function UserNotFound()
+    {
+        FrameworkMain::genericApiResponse([
+            "status" => false,
+            "msg" => "User not found",
+        ]);
+    }
+
+    public static function NotValidToken()
+    {
+        FrameworkMain::genericApiResponse([
+            "status" => false,
+            "msg" => "The token is not valid",
+        ]);
+    }
+
+    public static function UserIncorrectPassword()
+    {
+        FrameworkMain::genericApiResponse([
+            "status" => false,
+            "msg" => "User or password incorrect",
+        ]);
+    }
+
     public static function validateRequestParams($requiredParams)
     {
         foreach ($requiredParams as $param) {

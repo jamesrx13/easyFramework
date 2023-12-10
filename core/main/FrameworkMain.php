@@ -151,15 +151,24 @@ class FrameworkMain
         }
     }
 
-    public static function getApiRoute($request_uri)
+    public static function getApiRoute($request_uri, $isUser = false)
     {
-        $request_uri =  explode("/api/", $request_uri);
+        $request_uri = explode("/api/", $request_uri);
 
-        if (count($request_uri) > 0) {
+        if ($isUser) {
+            $request_uri = explode("/user/", $request_uri[0]);
+        }
+
+        if (count($request_uri) > 1) {
 
             if ($request_uri[1] != '') {
                 $request_uri = explode("/", $request_uri[1]);
                 if (count($request_uri) > 0) {
+
+                    if ($isUser) {
+                        return $request_uri[0];
+                    }
+
                     return (object) [
                         'route' => $request_uri[0],
                         'operation' => $request_uri[1],
@@ -204,5 +213,36 @@ class FrameworkMain
     public function getDB()
     {
         return $this->db;
+    }
+
+    public static function hashPassword($password)
+    {
+        return password_hash($password, PASSWORD_BCRYPT);
+    }
+
+    public static function verifyPassword($password, $hash)
+    {
+        return password_verify($password, $hash);
+    }
+
+    public static function encrypt_decrypt($action, $string): string
+    {
+        $output = false;
+        $encrypt_method = "AES-256-CBC";
+        $key = hash('sha256', gloablConfig::SECRET_KEY);
+        $iv = substr(hash('sha256', gloablConfig::SECRET_IV), 0, 16);
+        if ($action == 'encrypt') {
+            $output = openssl_encrypt($string, $encrypt_method, $key, 0, $iv);
+            $output = base64_encode($output);
+        } else if ($action == 'decrypt') {
+            $output = openssl_decrypt(base64_decode($string), $encrypt_method, $key, 0, $iv);
+        }
+        return $output;
+    }
+
+    public static function getRequestHeader($header)
+    {
+        $header = 'HTTP_' . str_replace('-', '_', strtoupper($header));
+        return isset($_SERVER[$header]) ? $_SERVER[$header] : false;
     }
 }

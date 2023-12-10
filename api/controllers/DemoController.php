@@ -78,14 +78,17 @@ class DemoController
             'created' => [
                 'fnt' => 'createdFnt',
                 'method' => 'POST',
+                'auth' => true,
             ],
             'updated' => [
                 'fnt' => 'updatedFnt',
                 'method' => 'POST',
+                'auth' => true,
             ],
             'delete' => [
                 'fnt' => 'deleteFnt',
                 'method' => 'GET',
+                'auth' => true,
             ],
         ];
 
