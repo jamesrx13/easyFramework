@@ -74,7 +74,7 @@ class Utils
     {
         FrameworkMain::genericApiResponse([
             "status" => false,
-            "msg" => "The token is not valid",
+            "msg" => "You need a valid token",
         ]);
     }
 
