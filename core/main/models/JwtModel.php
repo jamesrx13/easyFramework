@@ -56,7 +56,7 @@ class JwtModel extends FrameworkOrm
             return self::TIME_BY_TYPE[$type];
         }
 
-        return date('Y-m-d', strtotime(self::TIME_BY_TYPE[$type]));
+        return date('Y-m-d:m-s', strtotime(self::TIME_BY_TYPE[$type]));
     }
 
     public function deleteTokenByUserId($id)
@@ -67,6 +67,12 @@ class JwtModel extends FrameworkOrm
 
     public function validateToken()
     {
+        $token = $this->token;
+        $token = (object) $this->getAllBy("token = '{$token}'");
+
+        if(empty($token->data)){
+            return false;
+        }
 
         $dataToken = $this->getTokenData();
 

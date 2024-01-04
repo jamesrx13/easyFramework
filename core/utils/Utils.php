@@ -120,4 +120,22 @@ class Utils
         }
         return $files;
     }
+
+    public static function getEnv(String $key = '') {
+        
+        if($key == ''):            
+            return $_ENV;
+        endif;
+
+        if(key_exists($key, $_ENV)){
+            return $_ENV[$key];
+        } else {
+            return false;
+        }
+    }
+
+    public static function sendEmail($to, $title, $msg)
+    {        
+        //TODO: 
+    }
 }

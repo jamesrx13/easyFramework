@@ -1,9 +1,9 @@
 <?php
+// Ruta inicial
 $rootUrl = $_SERVER['SCRIPT_FILENAME'];
 $rootUrl = explode("/", $rootUrl);
 unset($rootUrl[count($rootUrl) - 1]);
 $rootUrl = implode("/", $rootUrl);
-
 define('MAIN_URL', $rootUrl . '/');
 
 use api\ApiRouter;
@@ -24,6 +24,9 @@ spl_autoload_register(function ($className) {
     }
     include $fileName;
 });
+
+// Variables de entorno
+$_ENV = Utils::is_local() ? parse_ini_file('.env.local') : parse_ini_file('.env');
 
 $application = new ApplicationClass;
 $application = $application->dataBase();
@@ -84,7 +87,19 @@ if (strpos($request_uri, '/api/') && $status) {
     $authFnt = AuthController::routes(FrameworkMain::getApiRoute($request_uri, true));
 
     if (FrameworkMain::validateMethod($authFnt->method)) {
-        AuthController::{$authFnt->fnt}();
+        if (isset($authFnt->auth)) {
+            if($authFnt->auth){
+                if(AuthController::isValidToken()){
+                    AuthController::{$authFnt->fnt}();
+                } else {
+                    Utils::NotValidToken();
+                }
+            } else {
+                AuthController::{$authFnt->fnt}();
+            }
+        } else {
+            AuthController::{$authFnt->fnt}();
+        }
     } else {
         Utils::RouteNotFound();
     }
