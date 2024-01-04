@@ -73,7 +73,7 @@ class AuthController
     public static function isValidToken()
     {
         $jwtModel = new JwtModel();
-        $jwtModel->token = FrameworkMain::getRequestHeader(GlobalConfig::HEADER_TOKEN);
+        $jwtModel->token = FrameworkMain::getRequestHeader(Utils::getEnv('HEADER_TOKEN'));
         return $jwtModel->validateToken();
     }
 
@@ -111,7 +111,7 @@ class AuthController
             $values = (object) Utils::getRequestParams($requiredParams);
 
             $jwtModel = new JwtModel();
-            $jwtModel->token = FrameworkMain::getRequestHeader(GlobalConfig::HEADER_TOKEN);
+            $jwtModel->token = FrameworkMain::getRequestHeader(Utils::getEnv('HEADER_TOKEN'));
 
             $tokenData = (object) $jwtModel->getTokenData();
 
@@ -140,7 +140,7 @@ class AuthController
 
     public static function logoutFnt()
     {
-        $token = FrameworkMain::getRequestHeader(GlobalConfig::HEADER_TOKEN);
+        $token = FrameworkMain::getRequestHeader(Utils::getEnv('HEADER_TOKEN'));
         $res = (new JwtModel())->executeMainQuery("DELETE FROM :table WHERE token = '{$token}'");
         FrameworkMain::genericApiResponse($res);
     }

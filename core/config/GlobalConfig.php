@@ -7,10 +7,6 @@ use core\utils\Utils;
 
 class GlobalConfig
 {
-    const SECRET_KEY = 'k#P_EkDkVMm6qt4SlRUWBLJpjDTjRD';
-    const SECRET_IV = '-wWRzzZ#a0k#E+-j5P*e#*Ly!7Bg0X';
-    const HEADER_TOKEN = 'x-auth-token';
-
     public static function getArryHeaders()
     {
         return [
@@ -30,9 +26,9 @@ class GlobalConfig
                 'ipRequest' => Utils::getIp(),
             ],
             'project' => [
-                'projectName' => 'easyFramework',
-                'projectAuthor' => 'James Rudas',
-                'projectVersion' => '1.0.0',
+                'projectName' => Utils::getEnv('APP_NAME'),
+                'projectAuthor' => Utils::getEnv('APP_AUTHOR'),
+                'projectVersion' => Utils::getEnv('APP_VERSION'),
             ],
         ];
     }

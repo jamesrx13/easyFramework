@@ -229,8 +229,8 @@ class FrameworkMain
     {
         $output = false;
         $encrypt_method = "AES-256-CBC";
-        $key = hash('sha256', gloablConfig::SECRET_KEY);
-        $iv = substr(hash('sha256', gloablConfig::SECRET_IV), 0, 16);
+        $key = hash('sha256', Utils::getEnv('SECRET_KEY'));
+        $iv = substr(hash('sha256', Utils::getEnv('SECRET_IV')), 0, 16);
         if ($action == 'encrypt') {
             $output = openssl_encrypt($string, $encrypt_method, $key, 0, $iv);
             $output = base64_encode($output);
