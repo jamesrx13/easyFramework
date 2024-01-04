@@ -99,7 +99,7 @@ class FrameworkMain
                 } else {
                     self::genericApiResponse([
                         "status" => false,
-                        "msg" => "Wrong request"
+                        "msg" => $prepareQuery->errorInfo()[2],
                     ]);
                 }
             } catch (\Throwable $th) {
@@ -134,7 +134,7 @@ class FrameworkMain
                 } else {
                     return [
                         "status" => false,
-                        "msg" => "Wrong request"
+                        "msg" => $prepareQuery->errorInfo()[2]
                     ];
                 }
             } catch (\Throwable $th) {

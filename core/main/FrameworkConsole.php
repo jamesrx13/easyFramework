@@ -9,8 +9,12 @@ use core\utils\Utils;
 
 include 'FrameworkMain.php';
 
+// Variables de entorno
+$_ENV = parse_ini_file('.env.local');
+// Base de datos
 $mainController = new FrameworkMain();
 $database = (object) $mainController->getDB();
+
 
 unset($argv[0]);
 
@@ -86,7 +90,8 @@ class FrameworkConsole
                 if ($resp->status) {
                     echo "Modelo '{$model_name}' migrado con exito.";
                 } else {
-                    echo "Error => El modelo '{$model_name}' no se pudo migrar, por favor revisar.";
+                    echo "-- El modelo '{$model_name}' no se pudo migrar, por favor revisar --\n";
+                    echo "Error => " . $resp->msg . "\n";
                     die();
                 }
             } else {
