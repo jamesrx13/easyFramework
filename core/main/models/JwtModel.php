@@ -93,6 +93,12 @@ class JwtModel extends FrameworkOrm
             return false;
         }
 
+        $dataToken = (object) $token->data[0];
+
+        if(!$dataToken->status){
+            return false;
+        }
+
         $dataToken = $this->getTokenData();
 
         if (!$dataToken) {
