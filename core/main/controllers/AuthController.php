@@ -2,7 +2,6 @@
 
 namespace core\main\controllers;
 
-use core\config\GlobalConfig;
 use core\main\FrameworkMain;
 use core\main\models\JwtModel;
 use core\main\models\UserModel;
@@ -40,11 +39,7 @@ class AuthController
                     $response = $jwtModel->deleteTokenByUserId($userModel->id);
 
                     if ($response['status']) {
-                        $expiration = $jwtModel->dateExpriationByType();
-
-                        $jwt = FrameworkMain::encrypt_decrypt('encrypt', JwtModel::DAY_TOKEN); //Tipo de token
-                        $jwt .= '.' . FrameworkMain::encrypt_decrypt('encrypt', $userModel->id); // Id del usuario
-                        $jwt .= '.' . FrameworkMain::encrypt_decrypt('encrypt', $expiration); //Fecha de expiracion
+                        $jwt = $jwtModel->generateToken(JwtModel::DAY_TOKEN, $userModel->id);
 
                         $jwtModel->load(null, [
                             'user_id' => $userModel->id,
@@ -145,6 +140,65 @@ class AuthController
         FrameworkMain::genericApiResponse($res);
     }
 
+    public static function generateCustomToken(){
+        $requiredParams = [
+            'tokenType'
+        ];
+
+        if(Utils::validateRequestParams($requiredParams)){
+            $values = (object) Utils::getRequestParams($requiredParams);
+            $jwtModel = new JwtModel();
+            $jwtModel->token = FrameworkMain::getRequestHeader(Utils::getEnv('HEADER_TOKEN'));
+            $userId = ((object) $jwtModel->getTokenData())->userId;            
+
+            $newToken = $jwtModel->generateToken($values->tokenType, $userId);
+
+            if(is_bool($newToken) && !$newToken){
+                FrameworkMain::genericApiResponse([
+                    'status' => false,
+                    'msg' => 'Invalid token type'
+                ]);
+            }
+
+            $jwtModel->token = $newToken;
+            $jwtModel->user_id = $userId;
+            $jwtModel->isSessionToken = '0';
+            $jwtModel->save(false);
+
+            FrameworkMain::genericApiResponse([
+                'status' => true,
+                'token' => $newToken,
+                'msg' => JwtModel::TOKEN_TEXT[$values->tokenType]
+            ]);
+        }
+    }
+
+    public static function changeStatusToken(){
+        $requiredParams = [
+            'tokenId'
+        ];
+
+        if(Utils::validateRequestParams($requiredParams)){
+            $values = (object) Utils::getRequestParams($requiredParams);
+            $jwtModel = new JwtModel();
+            $jwtModel->token = FrameworkMain::getRequestHeader(Utils::getEnv('HEADER_TOKEN'));
+            $userId = ((object) $jwtModel->getTokenData())->userId;
+
+            $tokenModel = new JwtModel($values->tokenId);
+
+            if($tokenModel->user_id != $userId){
+                FrameworkMain::genericApiResponse([
+                    'status' => false,
+                    'msg' => 'You cannot modify this token'
+                ]);
+            }
+
+            $tokenModel->status =  (String) !$tokenModel->status;
+            $tokenModel->update();           
+
+        }
+    }
+
     public static function routes($operation)
     {
         // Se establece la ruta por defecto
@@ -168,6 +222,16 @@ class AuthController
             ],
             'update' => [
                 'fnt' => 'updateUser',
+                'method' => 'POST',
+                'auth' => true,
+            ],
+            'generateToken' => [
+                'fnt' => 'generateCustomToken',
+                'method' => 'POST',
+                'auth' => true,
+            ],
+            'tokenChangeStatus' => [
+                'fnt' => 'changeStatusToken',
                 'method' => 'POST',
                 'auth' => true,
             ],

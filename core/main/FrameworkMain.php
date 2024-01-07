@@ -39,6 +39,7 @@ class FrameworkMain
                 "msg" => "Empty data"
             ]);
         }
+        die();
     }
 
     protected static function setApiHeaders()

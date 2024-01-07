@@ -10,12 +10,12 @@ class JwtModel extends FrameworkOrm
 
     const TABLE = 'jwt';
 
-    const ONE_REQUEST_TOKEN = 0;
-    const HOUR_TOKEN = 1;
-    const DAY_TOKEN = 2;
-    const MONTH_TOKEN = 3;
-    const YEAR_TOKEN = 4;
-    const INFINITE_TOKEN = 5;
+    const ONE_REQUEST_TOKEN = 1;
+    const HOUR_TOKEN = 2;
+    const DAY_TOKEN = 3;
+    const MONTH_TOKEN = 4;
+    const YEAR_TOKEN = 5;
+    const INFINITE_TOKEN = 6;
 
     const TIME_BY_TYPE = [
         self::ONE_REQUEST_TOKEN => 'only_one_request',
@@ -24,6 +24,15 @@ class JwtModel extends FrameworkOrm
         self::MONTH_TOKEN => '+1 month',
         self::YEAR_TOKEN => '+1 year',
         self::INFINITE_TOKEN => 'infinite_auth',
+    ];
+
+    const TOKEN_TEXT = [
+        self::ONE_REQUEST_TOKEN => 'Single request token',
+        self::HOUR_TOKEN => 'One hour token',
+        self::DAY_TOKEN => 'One day token',
+        self::MONTH_TOKEN => 'One month token',
+        self::YEAR_TOKEN => 'One year token',
+        self::INFINITE_TOKEN => 'Infinite token',
     ];
 
     const ARRAY_MAPPER = [
@@ -41,6 +50,16 @@ class JwtModel extends FrameworkOrm
             'type' => 'varchar',
             'nullable' => false,
             'length' => 999,
+        ],
+        'isSessionToken' => [
+            'type' => 'boolean',
+            'nullable' => false,
+            'default' => true,
+        ],
+        'status' => [
+            'type' => 'boolean',
+            'nullable' => false,
+            'default' => true,
         ],
         'created_at' => [
             'type' => 'datetime',
@@ -61,7 +80,7 @@ class JwtModel extends FrameworkOrm
 
     public function deleteTokenByUserId($id)
     {
-        $sql = "DELETE FROM :table WHERE user_id = {$id}";
+        $sql = "DELETE FROM :table WHERE user_id = {$id} AND isSessionToken = 1";
         return $this->executeMainQuery($sql);
     }
 
@@ -88,14 +107,17 @@ class JwtModel extends FrameworkOrm
             return false;
         }
 
+        // Tokens de un solo uso
         if ($dataToken->tokenType == self::ONE_REQUEST_TOKEN) {
-            // Validación de una sola request
+            $currentTokenData = (object) $token->data[0];
+            (new JwtModel($currentTokenData->id))->delete(false);
+            return true;
         }
-
+        // Token infinito
         if ($dataToken->tokenType == self::INFINITE_TOKEN) {
             return true;
         }
-
+        // Tokents de tiempo
         if ($dataToken->expiration < date('Y-m-d')) {
             return false;
         } else {
@@ -125,5 +147,17 @@ class JwtModel extends FrameworkOrm
         unset($dataToken[2]);
 
         return $dataToken;
+    }
+
+    public function generateToken($tokenType, $userID){
+
+        if(!key_exists($tokenType, self::TIME_BY_TYPE)){
+            return false;
+        }
+
+        $jwt = FrameworkMain::encrypt_decrypt('encrypt', $tokenType); //Tipo de token
+        $jwt .= '.' . FrameworkMain::encrypt_decrypt('encrypt', $userID); // Id del usuario
+        $jwt .= '.' . FrameworkMain::encrypt_decrypt('encrypt', $this->dateExpriationByType($tokenType)); //Fecha de expiracio
+        return $jwt;
     }
 }
