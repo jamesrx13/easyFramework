@@ -127,6 +127,46 @@ class AuthController
         }
     }
 
+    public static function changePassword()
+    {
+        $requiredParams = [
+            'currentPassword',
+            'newPassword',
+            'confirmPassword',
+        ];
+
+        if (Utils::validateRequestParams($requiredParams)) {
+
+            $values = (object) Utils::getRequestParams($requiredParams);
+
+            $jwtModel = new JwtModel();
+            $jwtModel->token = FrameworkMain::getRequestHeader(Utils::getEnv('HEADER_TOKEN'));
+            $tokenData = (object) $jwtModel->getTokenData();
+            $userModel = new UserModel($tokenData->userId);
+
+            if ($userModel->id != null) {
+
+                if (FrameworkMain::verifyPassword($values->currentPassword, $userModel->password)) {
+
+                    if($values->newPassword == $values->confirmPassword){
+                        $userModel->password = FrameworkMain::hashPassword($values->newPassword);
+                        $userModel->update();
+                    } else {
+                        FrameworkMain::genericApiResponse([
+                            'status' => false,
+                            'msg' => 'Passwords do not match'
+                        ]);
+                    }
+
+                } else {
+                    Utils::UserIncorrectPassword();
+                }
+            } else {
+                Utils::UserNotFound();
+            }
+        }
+    }
+
     public static function resetPassword()
     {
         // TODO:
@@ -222,6 +262,11 @@ class AuthController
             ],
             'update' => [
                 'fnt' => 'updateUser',
+                'method' => 'POST',
+                'auth' => true,
+            ],
+            'changePassword' => [
+                'fnt' => 'changePassword',
                 'method' => 'POST',
                 'auth' => true,
             ],
