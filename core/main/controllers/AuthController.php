@@ -239,6 +239,23 @@ class AuthController
         }
     }
 
+    public static function getTokensInfo(){
+        $tokens = [];
+
+        foreach(JwtModel::TOKEN_TEXT as $key => $tokenText){
+            $tokens[] = [
+                'type' => $key,
+                'msg' => $tokenText
+            ];
+        }
+
+        FrameworkMain::genericApiResponse([
+            'status' => true,
+            'totalElements' => count($tokens),
+            'data' => $tokens
+        ]);
+    }
+
     public static function routes($operation)
     {
         // Se establece la ruta por defecto
@@ -278,6 +295,11 @@ class AuthController
             'tokenChangeStatus' => [
                 'fnt' => 'changeStatusToken',
                 'method' => 'POST',
+                'auth' => true,
+            ],
+            'tokensInformation' => [
+                'fnt' => 'getTokensInfo',
+                'method' => 'GET',
                 'auth' => true,
             ],
             // 'resetPassword' => [
