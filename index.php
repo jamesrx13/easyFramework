@@ -43,6 +43,14 @@ if (strpos($request_uri, '/api/') && $status) {
 
     if ($route->route != '' && $apiRouter->existRoute($route->route)) {
 
+        // Middlewares
+        $middlewares = $apiRouter->getMiddlewares($route->route);
+
+        foreach($middlewares as $middleware){
+            $middleware();
+        }
+
+        // Funciones de la ruta
         $controller = ucfirst($route->route) . 'Controller';
 
         if (file_exists('api/controllers/' . $controller . '.php')) {
