@@ -92,7 +92,7 @@ class Utils
             if (!isset($_REQUEST[$param]) || empty($_REQUEST[$param])) {
                 FrameworkMain::genericApiResponse([
                     "status" => false,
-                    "msg" => "El patametro '{$param}' es requerido.",
+                    "msg" => "El parámetro '{$param}' es requerido.",
                 ]);
                 return false;
             }
