@@ -2,8 +2,6 @@
 
 namespace api;
 
-use core\main\FrameworkMain;
-
 class ApiRouter
 {
 

@@ -4,6 +4,7 @@ namespace core\main\models;
 
 use core\main\FrameworkMain;
 use core\main\FrameworkOrm;
+use core\utils\Utils;
 
 class JwtModel extends FrameworkOrm
 {
@@ -111,6 +112,10 @@ class JwtModel extends FrameworkOrm
 
         if (!$userModel->id) {
             return false;
+        }
+
+        if($userModel->status != UserModel::STATUS_ACTIVATE){
+            Utils::userNotActivate($userModel->status);
         }
 
         // Tokens de un solo uso

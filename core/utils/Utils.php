@@ -3,6 +3,7 @@
 namespace core\utils;
 
 use core\main\FrameworkMain;
+use core\main\models\UserModel;
 
 class Utils
 {
@@ -67,6 +68,22 @@ class Utils
         FrameworkMain::genericApiResponse([
             "status" => false,
             "msg" => "User not found",
+        ]);
+    }
+
+    public static function userNotActivate($staus)
+    {
+        $msg = '';
+
+        if($staus == UserModel::STATUS_DESACTIVATE){
+            $msg = "Your user is deactivated";
+        } elseif($staus == UserModel::STATUS_BLOCK){
+            $msg = "Your user is blocked";
+        }
+
+        FrameworkMain::genericApiResponse([
+            "status" => false,
+            "msg" => $msg,
         ]);
     }
 

@@ -8,12 +8,12 @@ use core\utils\Utils;
 class UserModel extends FrameworkOrm
 {
 
-    const STATUS_DEACTIVATE = 0;
+    const STATUS_DESACTIVATE = 0;
     const STATUS_ACTIVATE = 1;
     const STATUS_BLOCK = 2;
 
     const STATUS_PLACEHOLDER = [
-        self::STATUS_DEACTIVATE => 'Desactivado',
+        self::STATUS_DESACTIVATE => 'Desactivado',
         self::STATUS_ACTIVATE => 'Activado',
         self::STATUS_BLOCK => 'Bloqueado',
     ];
@@ -86,6 +86,7 @@ class UserModel extends FrameworkOrm
 
         return $data[0];
     }
+
     public function publicData()
     {
         $userData = clone ($this);
@@ -99,5 +100,19 @@ class UserModel extends FrameworkOrm
         $userData['statusPlaceholder'] = self::STATUS_PLACEHOLDER[$userData['status']];
 
         return $userData;
+    }
+
+    public function changeStatus(){
+        if($this->status == self::STATUS_ACTIVATE){
+            $this->status = self::STATUS_DESACTIVATE;
+        } else {
+            $this->status = self::STATUS_ACTIVATE;
+        }
+        $this->update();
+    }
+
+    public function blockUser(){
+        $this->status = self::STATUS_BLOCK;
+        $this->update();
     }
 }

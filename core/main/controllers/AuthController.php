@@ -31,6 +31,10 @@ class AuthController
 
                 $userModel->load(null, $userData);
 
+                if($userModel->status != UserModel::STATUS_ACTIVATE){
+                    Utils::userNotActivate($userModel->status);
+                }
+
                 if (FrameworkMain::verifyPassword($values['password'], $userModel->password)) {
 
 
@@ -256,6 +260,22 @@ class AuthController
         ]);
     }
 
+    public static function changeStatus(){
+        $requestParams = [
+            'id'
+        ];
+
+        if(Utils::validateRequestParams($requestParams)){
+            $values = (object) Utils::getRequestParams($requestParams);
+            $model = new UserModel($values->id);
+            if($model->id){
+                $model->changeStatus();
+            } else {
+                Utils::UserNotFound();
+            }
+        }
+    }
+
     public static function routes($operation)
     {
         // Se establece la ruta por defecto
@@ -300,6 +320,11 @@ class AuthController
             'tokensInformation' => [
                 'fnt' => 'getTokensInfo',
                 'method' => 'GET',
+                'auth' => true,
+            ],
+            'changeStatus' => [
+                'fnt' => 'changeStatus',
+                'method' => 'POST',
                 'auth' => true,
             ],
             // 'resetPassword' => [
