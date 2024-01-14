@@ -18,7 +18,10 @@ class DemoModel extends FrameworkOrm
         'name' => [
             'type' => 'varchar',
             'nullable' => false,
-            'length' => 100,
+        ],
+        'imageUrl' => [
+            'type' => 'longtext',
+            'nullable' => false,
         ],
         'created_at' => [
             'type' => 'datetime',

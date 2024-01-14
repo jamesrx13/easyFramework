@@ -10,7 +10,19 @@ class DemoController
     public static function list()
     {
         $model = new DemoModel();
-        FrameworkMain::genericApiResponse($model->getAll(false));
+        $resp = $model->getAll(false);
+        
+        $data = $resp['data'];
+        $newData = [];
+
+        foreach($data as $register){
+            $register['imageUrl'] = Utils::getMainUrl() . $register['imageUrl'];
+            $newData[] = $register;
+        }
+
+        $resp['data'] = $newData;
+
+        FrameworkMain::genericApiResponse($resp);
     }
 
     public static function createdFnt()
@@ -19,12 +31,23 @@ class DemoController
             'name',
         ];
 
-        if (Utils::validateRequestParams($requiredParams)) {
-            $params = Utils::getRequestParams($requiredParams);
+        $requiredFiles = [
+            'image',
+        ];
+
+        if (Utils::validateRequestParams($requiredParams) && Utils::validateRequestFiles($requiredFiles)) {
+
+            $params = (object) Utils::getRequestParams($requiredParams);
+            $files = Utils::getRequestFiles($requiredFiles);
+
             $model = new DemoModel();
             $model->load(null, $params);
-            $response = $model->save(false);
-            FrameworkMain::genericApiResponse($response);
+
+            $imagesPath = Utils::uploadAccess($files, FrameworkMain::IMAGES_FORMAT, 'demo/img');
+
+            $model->imageUrl = $imagesPath[0];
+
+            $model->save();
         }
     }
 

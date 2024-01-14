@@ -4,6 +4,8 @@ namespace core\utils;
 
 use core\main\FrameworkMain;
 use core\main\models\UserModel;
+use finfo;
+use RuntimeException;
 
 class Utils
 {
@@ -117,11 +119,37 @@ class Utils
         return true;
     }
 
+    public static function validateRequestFiles($requireFiles)
+    {
+        foreach ($requireFiles as $param) {
+            if (!isset($_FILES[$param]) || empty($_FILES[$param])) {
+                FrameworkMain::genericApiResponse([
+                    "status" => false,
+                    "msg" => "El archivo '{$param}' es requerido.",
+                ]);
+                return false;                
+            }
+        }
+        return true;
+    }
+
     public static function getRequestParams($params)
     {
         $data = [];
         foreach ($params as $param) {
             $data[$param] = $_REQUEST[$param];
+        }
+        return $data;
+    }
+
+    public static function getRequestFiles($files)
+    {
+        $data = [];
+        foreach ($files as $param) {
+            if($_FILES[$param]){
+                $data[$param] = $_FILES[$param];
+                $data[$param]['key'] = $param;
+            }
         }
         return $data;
     }
@@ -149,6 +177,118 @@ class Utils
         } else {
             return false;
         }
+    }
+
+    public static function uploadAccess(Array $allFiles, Array $format, String $folder){
+        try {
+            
+            $imagesUploads = [];
+
+            if($folder != '/'){
+                $folder = trim($folder, '/');
+            }
+
+            // Validar que exista la carpeta de destino en API
+            if(!is_dir('/api/uploads')){
+                @mkdir('./api/uploads/', 0700);
+            }
+            
+            foreach($allFiles as $currentFile){
+                $fileObj = (object) $currentFile;
+
+                // Validación de posibles errores al subir
+                if (!isset($_FILES[$fileObj->key]['error']) || is_array($_FILES[$fileObj->key]['error'])) {
+                    throw new RuntimeException('Invalid parameters.');
+                }
+
+                // Validación del peso del archivo
+                // if ($_FILES[$fileObj->key]['size'] > FILE_MAX_SIZE) {
+                //     throw new RuntimeException('Exceeded filesize limit.');
+                // }
+
+                // Validación del formato del archivo
+                if($format != FrameworkMain::ALL_FILE_FORMATS){
+                    $finfo = new finfo(FILEINFO_MIME_TYPE);
+                    if (false === $ext = array_search(
+                        $finfo->file($_FILES[$fileObj->key]['tmp_name']),
+                        $format,
+                        true
+                    )) {
+                        throw new RuntimeException('Invalid file format.');
+                    }
+                } else {
+                    $ext = $fileObj;
+                    $ext = explode('.', $fileObj->name);
+                    $ext = $ext[count($ext) - 1];
+                }
+
+                // Validación de la carpeta destino
+                if($folder == ''){
+                    throw new RuntimeException('Destination folder not specified');
+                }
+
+                // Crear la carpeta destino si esta no existe
+                if(!is_dir($folder)){
+                    $folder = trim($folder, '/');
+                    $folder = explode('/', $folder);
+
+                    if(count($folder) > 1){
+                        $initPath = '';
+                        foreach($folder as $fold){
+                            $initPath .= $fold . '/';
+                            @mkdir('./api/uploads/' . $initPath, 0700);                            
+                        }
+                        $folder = trim($initPath, '/');
+                    } else {
+                        $folder = $folder[0];
+                        @mkdir('./api/uploads/' . $folder, 0700);
+                    }
+                }
+
+                // Mover el archivo al servidor 
+                $newFileName = uniqid();
+                if($folder != '/'){
+                    $folder = '/' . $folder . '/';
+                }
+                $path = sprintf("/api/uploads{$folder}%s.%s", $newFileName, $ext);
+
+                if (!move_uploaded_file($_FILES[$fileObj->key]['tmp_name'],  '.' . $path)) {
+                    throw new RuntimeException('Failed to move uploaded file.');
+                }
+
+                $imagesUploads[] = $path;
+
+            }
+
+            return $imagesUploads;
+
+        } catch (\Throwable $th) {
+            FrameworkMain::genericApiResponse([
+                'status' => false,
+                'msg' => $th->getMessage(),
+            ]);
+        }
+    }
+
+    public static function getMainUrl(){
+        // Obtener la información del servidor
+        $scheme = isset($_SERVER['REQUEST_SCHEME']) ? $_SERVER['REQUEST_SCHEME'] : 'http';
+        $serverName = isset($_SERVER['SERVER_NAME']) ? $_SERVER['SERVER_NAME'] : 'localhost';
+        $serverPort = isset($_SERVER['SERVER_PORT']) ? $_SERVER['SERVER_PORT'] : '';
+        $requestUrl = isset($_SERVER['REQUEST_URI']) ? $_SERVER['REQUEST_URI'] : './';
+
+        // Construir la URL base
+        $baseUrl = $scheme . '://' . $serverName;
+
+        // Agregar el puerto si es diferente del estándar
+        if (($scheme == 'http' && $serverPort != '80') || ($scheme == 'https' && $serverPort != '443')) {
+            $baseUrl .= ':' . $serverPort;
+        }
+
+        // Agregar la ruta base del proyecto
+        $baseUrl .=  '/'. explode('/', trim($requestUrl, '/'))[0];
+
+        return $baseUrl;
     }
 
     public static function sendEmail($to, $title, $msg)

@@ -19,6 +19,27 @@ class FrameworkMain
 
     protected $db;
 
+    const IMAGES_FORMAT = [
+        'jpg' => 'image/jpeg',
+        'png' => 'image/png',
+        'gif' => 'image/gif',
+    ];
+
+    const VIDEO_FORMATS = [
+        'mp4'  => 'video/mp4',
+        'avi'  => 'video/x-msvideo',
+        'mov'  => 'video/quicktime',
+    ];
+
+    const DOCUMENT_FORMATS = [
+        'doc'  => 'application/msword',
+        'docx' => 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        'pdf'  => 'application/pdf',
+    ];
+
+    const ALL_FILE_FORMATS = ['*' => '*'];
+    
+
     function __construct()
     {
         $db = new ApplicationClass();

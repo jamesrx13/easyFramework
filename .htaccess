@@ -2,7 +2,10 @@
     RewriteEngine On
     RewriteBase /easyFramework/
 
-    # La solicitud independientemente de la URL siempre va a redireccionar al Index
+    # Excluir la regla de reescritura para URLs que contienen "api/uploads/"
+    RewriteCond %{REQUEST_URI} !api/uploads/
 
+    # La solicitud independientemente de la URL siempre va a redireccionar al Index
     RewriteRule ^ index.php [L]
+
 </IfModule>
