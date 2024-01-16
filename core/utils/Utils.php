@@ -179,7 +179,7 @@ class Utils
         }
     }
 
-    public static function uploadAccess(Array $allFiles, Array $format, String $folder){
+    public static function uploadAccess(Array $allFiles, Array $format, String $folder, String $name = null){
         try {
             
             $imagesUploads = [];
@@ -197,7 +197,7 @@ class Utils
                 $fileObj = (object) $currentFile;
 
                 // Validación de posibles errores al subir
-                if (!isset($_FILES[$fileObj->key]['error']) || is_array($_FILES[$fileObj->key]['error'])) {
+                if (!isset($_FILES[$fileObj->key]['error']) || ($_FILES[$fileObj->key]['error'] >= 1)) {
                     throw new RuntimeException('Invalid parameters.');
                 }
 
@@ -246,7 +246,7 @@ class Utils
                 }
 
                 // Mover el archivo al servidor 
-                $newFileName = uniqid();
+                $newFileName = $name != null ? $name : uniqid();
                 if($folder != '/'){
                     $folder = '/' . $folder . '/';
                 }

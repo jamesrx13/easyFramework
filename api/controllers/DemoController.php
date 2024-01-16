@@ -7,6 +7,8 @@ use core\utils\Utils;
 class DemoController
 {
 
+    const FOLDER_UPLOAD = 'demo/img';
+
     public static function list()
     {
         $model = new DemoModel();
@@ -43,7 +45,7 @@ class DemoController
             $model = new DemoModel();
             $model->load(null, $params);
 
-            $imagesPath = Utils::uploadAccess($files, FrameworkMain::IMAGES_FORMAT, 'demo/img');
+            $imagesPath = Utils::uploadAccess($files, FrameworkMain::IMAGES_FORMAT, self::FOLDER_UPLOAD);
 
             $model->imageUrl = $imagesPath[0];
 
@@ -58,16 +60,26 @@ class DemoController
             'name',
         ];
 
+        $files = [
+            'image'
+        ];
+
         if (Utils::validateRequestParams($requiredParams)) {
             $params = (object) Utils::getRequestParams($requiredParams);
+            $files = Utils::getRequestFiles($files);
 
             $model = new DemoModel($params->id);
 
             $model->name = $params->name;
 
-            $response = $model->update(false);
+            if(!empty($files)){
+                $currentImagen = explode('/', $model->imageUrl);
+                $currentImagen = explode('.', $currentImagen[count($currentImagen) - 1]);
+                $currentImagen = $currentImagen[0];
+                Utils::uploadAccess($files, FrameworkMain::IMAGES_FORMAT, self::FOLDER_UPLOAD, $currentImagen);
+            }
 
-            FrameworkMain::genericApiResponse($response);
+            $model->update();
         }
     }
 
