@@ -3,6 +3,7 @@
 namespace core\config;
 
 use core\main\FrameworkMain;
+use core\main\models\UserModel;
 use core\utils\Utils;
 
 class GlobalConfig
@@ -41,6 +42,8 @@ class GlobalConfig
                 'email' => 'root@email.com',
                 'name' => 'Root',
                 'last_name' => 'User',
+                'email' => 'root@email.com',
+                'rol' => UserModel::USER_ROL_ROOT,
                 'password' => FrameworkMain::hashPassword('root123456'),
             ],
             [
@@ -48,6 +51,8 @@ class GlobalConfig
                 'email' => 'admin@email.com',
                 'name' => 'Admin',
                 'last_name' => 'User',
+                'email' => 'admin@email.com',
+                'rol' => UserModel::USER_ROL_ADMIN,
                 'password' => FrameworkMain::hashPassword('admin123456'),
             ],
         ];

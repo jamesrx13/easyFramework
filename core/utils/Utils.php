@@ -105,6 +105,14 @@ class Utils
         ]);
     }
 
+    public static function NoPermission()
+    {
+        FrameworkMain::genericApiResponse([
+            "status" => false,
+            "msg" => "You do not have permission to access this route",
+        ]);
+    }
+
     public static function validateRequestParams($requiredParams)
     {
         foreach ($requiredParams as $param) {

@@ -12,6 +12,18 @@ class UserModel extends FrameworkOrm
     const STATUS_ACTIVATE = 1;
     const STATUS_BLOCK = 2;
 
+    const USER_ROL_ROOT = 1;
+    const USER_ROL_ADMIN = 2;
+    const USER_ROL_USER = 3;
+    const USER_ROL_GENERAL = 4;
+
+    const USERS_ROL_PLACEHOLDER = [
+        self::USER_ROL_ROOT => 'User Root',
+        self::USER_ROL_ADMIN => 'User Admin',
+        self::USER_ROL_USER => 'User',
+        self::USER_ROL_GENERAL => 'General User',
+    ];
+
     const STATUS_PLACEHOLDER = [
         self::STATUS_DESACTIVATE => 'Desactivado',
         self::STATUS_ACTIVATE => 'Activado',
@@ -49,6 +61,15 @@ class UserModel extends FrameworkOrm
         'last_name' => [
             'type' => 'varchar',
             'nullable' => false,
+        ],
+        'email' => [
+            'type' => 'text',
+            'nullable' => false,
+        ],
+        'rol' => [
+            'type' => 'int',
+            'nullable' => false,
+            'default' => self::USER_ROL_GENERAL,
         ],
         'status' => [
             'type' => 'int',
@@ -93,11 +114,14 @@ class UserModel extends FrameworkOrm
         $userData->frameworkMain = null;
 
         $userData = get_object_vars($userData);
-
+        
+        $userData['statusPlaceholder'] = self::STATUS_PLACEHOLDER[$userData['status']];
+        $userData['rolPlaceholder'] = self::USERS_ROL_PLACEHOLDER[$userData['rol']];
+        
         unset($userData['frameworkMain']);
         unset($userData['password']);
-
-        $userData['statusPlaceholder'] = self::STATUS_PLACEHOLDER[$userData['status']];
+        unset($userData['rol']);
+        unset($userData['status']);
 
         return $userData;
     }

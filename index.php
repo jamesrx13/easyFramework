@@ -73,7 +73,12 @@ if (strpos($request_uri, '/api/') && $status) {
                     Utils::NotValidToken();
                     die();
                 }
+
+                if (isset($routerOperations->roles)) {
+                    AuthController::validateRol($routerOperations->roles);
+                }
             }
+
 
             if (isset($routerOperations->method) && isset($routerOperations->fnt)) {
                 if (FrameworkMain::validateMethod($routerOperations->method)) {
@@ -98,6 +103,11 @@ if (strpos($request_uri, '/api/') && $status) {
         if (isset($authFnt->auth)) {
             if($authFnt->auth){
                 if(AuthController::isValidToken()){
+
+                    if (isset($authFnt->roles)) {
+                        AuthController::validateRol($authFnt->roles);
+                    }
+
                     AuthController::{$authFnt->fnt}();
                 } else {
                     Utils::NotValidToken();

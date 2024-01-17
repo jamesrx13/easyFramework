@@ -95,7 +95,35 @@ class AuthController
         }
     }
 
-    public static function updateUser()
+    public static function customUserRegister()
+    {
+        $requiredParams = [
+            'user_name',
+            'email',
+            'password',
+            'name',
+            'last_name',
+            'rol',
+        ];
+
+        if (Utils::validateRequestParams($requiredParams)) {
+            $values = (object) Utils::getRequestParams($requiredParams);
+
+            if(!key_exists($values->rol, UserModel::USERS_ROL_PLACEHOLDER)){
+                FrameworkMain::genericApiResponse([
+                    'status' => false,
+                    'msg' => 'Information specification error',
+                ]);
+            }
+
+            $userModel = new UserModel();
+            $userModel->load(null, $values);
+            $userModel->password = FrameworkMain::hashPassword($userModel->password);
+            $userModel->save();
+        }
+    }
+
+    public static function updateMyUser()
     {
         $requiredParams = [
             'user_name',
@@ -131,7 +159,7 @@ class AuthController
         }
     }
 
-    public static function changePassword()
+    public static function changeMyPassword()
     {
         $requiredParams = [
             'currentPassword',
@@ -276,6 +304,44 @@ class AuthController
         }
     }
 
+    public static function validateRol($roles){
+        $jwtModel = new JwtModel();
+        $jwtModel->token = FrameworkMain::getRequestHeader(Utils::getEnv('HEADER_TOKEN'));
+        $tokenInfo = (object) $jwtModel->getTokenData(); 
+
+        $userModel = new UserModel($tokenInfo->userId);
+
+        if($userModel->rol == UserModel::USER_ROL_ROOT) return;
+
+        if(is_array($roles)){
+
+            if(!in_array((int) $userModel->rol, $roles)){
+                Utils::NoPermission();
+            }
+
+        } elseif(is_int($roles)){
+
+            if($userModel->rol != $roles){
+                Utils::NoPermission();
+            }
+
+        } else {
+            FrameworkMain::genericApiResponse([
+                'status' => false,
+                'msg' => 'Unknown role'
+            ]);
+        }
+
+    }
+
+    public static function rolesInformation(){
+        FrameworkMain::genericApiResponse([
+            'status' => true,
+            'totalElements' => count(UserModel::USERS_ROL_PLACEHOLDER),
+            'data' => UserModel::USERS_ROL_PLACEHOLDER,
+        ]);
+    }
+
     public static function routes($operation)
     {
         // Se establece la ruta por defecto
@@ -288,6 +354,8 @@ class AuthController
             // $operation = 'login';
         }
 
+        $adminOpt = UserModel::USER_ROL_ADMIN;
+
         $operations = [
             'login' => [
                 'fnt' => 'login',
@@ -297,13 +365,19 @@ class AuthController
                 'fnt' => 'userRegister',
                 'method' => 'POST',
             ],
-            'update' => [
-                'fnt' => 'updateUser',
+            'registerCustomUser' => [
+                'fnt' => 'customUserRegister',
+                'method' => 'POST',
+                'auth' => true,
+                'roles' => $adminOpt,
+            ],
+            'updateMyUser' => [
+                'fnt' => 'updateMyUser',
                 'method' => 'POST',
                 'auth' => true,
             ],
-            'changePassword' => [
-                'fnt' => 'changePassword',
+            'changeMyPassword' => [
+                'fnt' => 'changeMyPassword',
                 'method' => 'POST',
                 'auth' => true,
             ],
@@ -311,21 +385,31 @@ class AuthController
                 'fnt' => 'generateCustomToken',
                 'method' => 'POST',
                 'auth' => true,
+                'roles' => $adminOpt,
             ],
             'tokenChangeStatus' => [
                 'fnt' => 'changeStatusToken',
                 'method' => 'POST',
                 'auth' => true,
+                'roles' => $adminOpt,
             ],
             'tokensInformation' => [
                 'fnt' => 'getTokensInfo',
                 'method' => 'GET',
                 'auth' => true,
+                'roles' => $adminOpt,
+            ],
+            'rolesInformation' => [
+                'fnt' => 'rolesInformation',
+                'method' => 'GET',
+                'auth' => true,
+                'roles' => $adminOpt,
             ],
             'changeStatus' => [
                 'fnt' => 'changeStatus',
                 'method' => 'POST',
                 'auth' => true,
+                'roles' => $adminOpt,
             ],
             // 'resetPassword' => [
             //     'fnt' => 'resetPassword',

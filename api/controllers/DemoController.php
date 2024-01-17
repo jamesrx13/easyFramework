@@ -2,6 +2,7 @@
 
 use api\models\DemoModel;
 use core\main\FrameworkMain;
+use core\main\models\UserModel;
 use core\utils\Utils;
 
 class DemoController
@@ -72,7 +73,7 @@ class DemoController
 
             $model->name = $params->name;
 
-            if(!empty($files)){
+            if(!empty($files) && $model->id != null){
                 $currentImagen = explode('/', $model->imageUrl);
                 $currentImagen = explode('.', $currentImagen[count($currentImagen) - 1]);
                 $currentImagen = $currentImagen[0];
@@ -105,6 +106,13 @@ class DemoController
             $operation = 'list';
         }
 
+        $editAndCreatedAccess = [
+            UserModel::USER_ROL_ADMIN,
+            UserModel::USER_ROL_USER,
+        ];
+
+        $deleteAccess = UserModel::USER_ROL_ADMIN;
+
         $operations = [
             'list' => [
                 'fnt' => 'list',
@@ -114,16 +122,19 @@ class DemoController
                 'fnt' => 'createdFnt',
                 'method' => 'POST',
                 'auth' => true,
+                'roles' => $editAndCreatedAccess,
             ],
             'updated' => [
                 'fnt' => 'updatedFnt',
                 'method' => 'POST',
                 'auth' => true,
+                'roles' => $editAndCreatedAccess,
             ],
             'delete' => [
                 'fnt' => 'deleteFnt',
                 'method' => 'GET',
                 'auth' => true,
+                'roles' => $deleteAccess,
             ],
         ];
 
