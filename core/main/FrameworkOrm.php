@@ -161,9 +161,9 @@ class FrameworkOrm
         return $this->frameworkMain->getDB()['dataBase']->lastInsertId();
     }
 
-    public function getAll($autoResponse = true)
+    public function getAll($autoResponse = true, $pagination = false)
     {
-        return $this->frameworkMain->getAllData(static::TABLE, $autoResponse);
+        return $this->frameworkMain->getAllData(static::TABLE, $autoResponse, $pagination);
     }
 
     public function getAllBy($whereCondition)

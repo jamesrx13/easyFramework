@@ -70,14 +70,15 @@ class FrameworkMain
         }
     }
 
-    public function getAllData($table, $autoResponse = true)
+    public function getAllData($table, $autoResponse = true, $pagination = false)
     {
         if ($table != "") {
             $sql = "SELECT * FROM {$table}";
+
             if ($autoResponse) {
-                self::executeQuery($sql);
+                self::executeQuery($sql, [], $pagination);
             } else {
-                return self::executeQueryNoResponse($sql);
+                return self::executeQueryNoResponse($sql, [], $pagination);
             }
         } else {
             self::genericApiResponse([
@@ -104,55 +105,68 @@ class FrameworkMain
         }
     }
 
-    public function executeQuery($sql, $data = [])
+    public function executeQuery($sql, $data = [], $pagination = false)
     {
-        extract($this->db);
-
-        if ($status) {
-            try {
-                $prepareQuery = $dataBase->prepare($sql);
-                if ($prepareQuery->execute($data)) {
-                    $queryResult = $prepareQuery->fetchAll(PDO::FETCH_ASSOC);
-                    self::genericApiResponse([
-                        "status" => true,
-                        "totalElements" => count($queryResult),
-                        "data" => $queryResult,
-                    ]);
-                } else {
-                    self::genericApiResponse([
-                        "status" => false,
-                        "msg" => $prepareQuery->errorInfo()[2],
-                    ]);
-                }
-            } catch (\Throwable $th) {
-                self::genericApiResponse([
-                    "status" => false,
-                    "msg" => $th->getMessage(),
-                ]);
-            }
-        } else {
-            self::genericApiResponse([
-                "status" => false,
-                "msg" => "Database error",
-            ]);
-        }
+        FrameworkMain::genericApiResponse(self::executeQueryNoResponse($sql, $data, $pagination));
     }
 
-    public function executeQueryNoResponse($sql, $data = [])
+    public function executeQueryNoResponse($sql, $data = [], $pagination = false)
     {
         extract($this->db);
 
         if ($status) {
             try {
+
+                if($pagination){
+                
+                    $request = (object) Utils::getRequestParams(['page', 'countData']);
+
+                    $page = isset($request->page) && $request->page != 0 ? $request->page : 1;
+                    $countData = isset($request->countData) && $request->countData != 0 ? $request->countData : 10;
+    
+                    $page = (int) $page;
+                    $countData = (int) $countData;    
+                    
+                    $compliteData = (object) self::executeQueryNoResponse($sql);
+                    
+                    $hasNexPage = $compliteData->totalElements > ($page * $countData);
+                    $hasPrePage = $page > 1;
+
+                    $offset = ($page - 1) * $countData;
+    
+                    $sql .= " LIMIT {$countData} OFFSET {$offset}";
+                }
+
                 $prepareQuery = $dataBase->prepare($sql);
 
                 if ($prepareQuery->execute($data)) {
                     $queryResult = $prepareQuery->fetchAll(PDO::FETCH_ASSOC);
-                    return [
-                        "status" => true,
-                        "totalElements" => count($queryResult),
-                        "data" => $queryResult,
-                    ];
+                    if($pagination){
+                        $response = [
+                            "status" => true,
+                            "totalElements" => count($queryResult),
+                            "totalRecords" => $compliteData->totalElements,
+                        ];
+                        
+                        if($hasNexPage){
+                            $response['nexPage'] = $page + 1;
+                        }
+
+                        if($hasPrePage){
+                            $response['prePage'] = $page - 1;
+                        }
+
+                        $response['data'] = $queryResult;
+
+                        return $response;
+                    } else {
+                        return [
+                            "status" => true,
+                            "totalElements" => count($queryResult),
+                            "data" => $queryResult,
+                        ];                        
+                    }
+
                 } else {
                     return [
                         "status" => false,

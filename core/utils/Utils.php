@@ -145,7 +145,9 @@ class Utils
     {
         $data = [];
         foreach ($params as $param) {
-            $data[$param] = $_REQUEST[$param];
+            if(isset($_REQUEST[$param])){
+                $data[$param] = $_REQUEST[$param];
+            }
         }
         return $data;
     }
