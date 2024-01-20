@@ -13,7 +13,7 @@ class DemoController
     public static function list()
     {
         $model = new DemoModel();
-        $resp = $model->getAll();
+        $resp = $model->getAll(false, true);
         
         $data = $resp['data'];
         $newData = [];
