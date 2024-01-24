@@ -306,5 +306,20 @@ class Utils
 
     public static function sendEmail($to, $title, $msg, $isHTML = false)
     {
+        $headers = array(
+            'From' => self::getEnv('APP_EMAIL'),
+            'Reply-To' => self::getEnv('APP_EMAIL'),
+            'X-Mailer' => 'PHP/' . phpversion()
+        );
+
+        if ($isHTML) {
+            $headers['Content-type'] = 'text/html; charset=iso-8859-1';
+        }
+
+        if (mail($to, $title, $msg, $headers)) {
+            return true;
+        } else {
+            return false;
+        }
     }
 }
