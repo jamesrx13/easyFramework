@@ -25,6 +25,8 @@ class DemoController
 
         $resp['data'] = $newData;
 
+        Utils::sendEmail('rudasmarinjf@gmail.com', 'Correo demo', 'Este es un mensaje xD', true);
+
         FrameworkMain::genericApiResponse($resp);
     }
 

@@ -77,9 +77,9 @@ class Utils
     {
         $msg = '';
 
-        if($staus == UserModel::STATUS_DESACTIVATE){
+        if ($staus == UserModel::STATUS_DESACTIVATE) {
             $msg = "Your user is deactivated";
-        } elseif($staus == UserModel::STATUS_BLOCK){
+        } elseif ($staus == UserModel::STATUS_BLOCK) {
             $msg = "Your user is blocked";
         }
 
@@ -135,7 +135,7 @@ class Utils
                     "status" => false,
                     "msg" => "El archivo '{$param}' es requerido.",
                 ]);
-                return false;                
+                return false;
             }
         }
         return true;
@@ -145,7 +145,7 @@ class Utils
     {
         $data = [];
         foreach ($params as $param) {
-            if(isset($_REQUEST[$param])){
+            if (isset($_REQUEST[$param])) {
                 $data[$param] = $_REQUEST[$param];
             }
         }
@@ -156,7 +156,7 @@ class Utils
     {
         $data = [];
         foreach ($files as $param) {
-            if($_FILES[$param]){
+            if ($_FILES[$param]) {
                 $data[$param] = $_FILES[$param];
                 $data[$param]['key'] = $param;
             }
@@ -176,34 +176,36 @@ class Utils
         return $files;
     }
 
-    public static function getEnv(String $key = '') {
-        
-        if($key == ''):            
+    public static function getEnv(String $key = '')
+    {
+
+        if ($key == '') :
             return $_ENV;
         endif;
 
-        if(key_exists($key, $_ENV)){
+        if (key_exists($key, $_ENV)) {
             return $_ENV[$key];
         } else {
             return false;
         }
     }
 
-    public static function uploadAccess(Array $allFiles, Array $format, String $folder, String $name = null){
+    public static function uploadAccess(array $allFiles, array $format, String $folder, String $name = null)
+    {
         try {
-            
+
             $imagesUploads = [];
 
-            if($folder != '/'){
+            if ($folder != '/') {
                 $folder = trim($folder, '/');
             }
 
             // Validar que exista la carpeta de destino en API
-            if(!is_dir('/api/uploads')){
+            if (!is_dir('/api/uploads')) {
                 @mkdir('./api/uploads/', 0700);
             }
-            
-            foreach($allFiles as $currentFile){
+
+            foreach ($allFiles as $currentFile) {
                 $fileObj = (object) $currentFile;
 
                 // Validación de posibles errores al subir
@@ -217,7 +219,7 @@ class Utils
                 // }
 
                 // Validación del formato del archivo
-                if($format != FrameworkMain::ALL_FILE_FORMATS){
+                if ($format != FrameworkMain::ALL_FILE_FORMATS) {
                     $finfo = new finfo(FILEINFO_MIME_TYPE);
                     if (false === $ext = array_search(
                         $finfo->file($_FILES[$fileObj->key]['tmp_name']),
@@ -233,20 +235,20 @@ class Utils
                 }
 
                 // Validación de la carpeta destino
-                if($folder == ''){
+                if ($folder == '') {
                     throw new RuntimeException('Destination folder not specified');
                 }
 
                 // Crear la carpeta destino si esta no existe
-                if(!is_dir($folder)){
+                if (!is_dir($folder)) {
                     $folder = trim($folder, '/');
                     $folder = explode('/', $folder);
 
-                    if(count($folder) > 1){
+                    if (count($folder) > 1) {
                         $initPath = '';
-                        foreach($folder as $fold){
+                        foreach ($folder as $fold) {
                             $initPath .= $fold . '/';
-                            @mkdir('./api/uploads/' . $initPath, 0700);                            
+                            @mkdir('./api/uploads/' . $initPath, 0700);
                         }
                         $folder = trim($initPath, '/');
                     } else {
@@ -257,7 +259,7 @@ class Utils
 
                 // Mover el archivo al servidor 
                 $newFileName = $name != null ? $name : uniqid();
-                if($folder != '/'){
+                if ($folder != '/') {
                     $folder = '/' . $folder . '/';
                 }
                 $path = sprintf("/api/uploads{$folder}%s.%s", $newFileName, $ext);
@@ -267,11 +269,9 @@ class Utils
                 }
 
                 $imagesUploads[] = $path;
-
             }
 
             return $imagesUploads;
-
         } catch (\Throwable $th) {
             FrameworkMain::genericApiResponse([
                 'status' => false,
@@ -280,7 +280,8 @@ class Utils
         }
     }
 
-    public static function getMainUrl(){
+    public static function getMainUrl($usingBaseRoute = false)
+    {
         // Obtener la información del servidor
         $scheme = isset($_SERVER['REQUEST_SCHEME']) ? $_SERVER['REQUEST_SCHEME'] : 'http';
         $serverName = isset($_SERVER['SERVER_NAME']) ? $_SERVER['SERVER_NAME'] : 'localhost';
@@ -296,13 +297,14 @@ class Utils
         }
 
         // Agregar la ruta base del proyecto
-        $baseUrl .=  '/'. explode('/', trim($requestUrl, '/'))[0];
+        if ($usingBaseRoute) {
+            $baseUrl .=  '/' . explode('/', trim($requestUrl, '/'))[0];
+        }
 
         return $baseUrl;
     }
 
-    public static function sendEmail($to, $title, $msg)
-    {        
-        //TODO: 
+    public static function sendEmail($to, $title, $msg, $isHTML = false)
+    {
     }
 }

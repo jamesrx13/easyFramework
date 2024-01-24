@@ -37,7 +37,7 @@ try {
 
     $request_uri = $_SERVER['REQUEST_URI'];
 
-    if (strpos($request_uri, '/api/') && $status) {
+    if (strpos($request_uri, 'api/') && $status) {
 
         $request_uri = substr($request_uri, -1) === '/' ? $request_uri : $request_uri . '/';
         $route = FrameworkMain::getApiRoute($request_uri);
@@ -97,7 +97,7 @@ try {
         } else {
             Utils::RouteNotFound();
         }
-    } elseif (strpos($request_uri, '/user') && $status) {
+    } elseif (strpos($request_uri, 'user/') && $status) {
         $request_uri = substr($request_uri, -1) === '/' ? $request_uri : $request_uri . '/';
         $authFnt = AuthController::routes(FrameworkMain::getApiRoute($request_uri, true));
 
