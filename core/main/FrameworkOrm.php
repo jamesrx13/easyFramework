@@ -166,9 +166,9 @@ class FrameworkOrm
         return $this->frameworkMain->getAllData(static::TABLE, $autoResponse, $pagination);
     }
 
-    public function getAllBy($whereCondition)
+    public function getAllBy($whereCondition, $data = [], $autoResponse = true, $pagination = false)
     {
-        return $this->frameworkMain->getAllDataBy(static::TABLE, $whereCondition, false);
+        return $this->frameworkMain->getAllDataBy(static::TABLE, $whereCondition, $autoResponse, $pagination, $data);
     }
 
     public function getPrimaryColum()
@@ -248,10 +248,10 @@ class FrameworkOrm
         }
     }
 
-    public function executeMainQuery($sql)
+    public function executeMainQuery($sql, $data = [], $pagination = false)
     {
         $sql = str_replace(':table', static::TABLE, $sql);
-        return $this->frameworkMain->executeQueryNoResponse($sql);
+        return $this->frameworkMain->executeQueryNoResponse($sql, $data, $pagination);
     }
 
     public function getTable()

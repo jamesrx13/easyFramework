@@ -19,13 +19,11 @@ class DemoController
         $newData = [];
 
         foreach($data as $register){
-            $register['imageUrl'] = Utils::getMainUrl() . $register['imageUrl'];
+            $register['imageUrl'] = Utils::getMainUrl(true) . $register['imageUrl'];
             $newData[] = $register;
         }
 
         $resp['data'] = $newData;
-
-        Utils::sendEmail('rudasmarinjf@gmail.com', 'Correo demo', 'Este es un mensaje xD', true);
 
         FrameworkMain::genericApiResponse($resp);
     }
