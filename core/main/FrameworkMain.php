@@ -88,14 +88,14 @@ class FrameworkMain
         }
     }
 
-    public function getAllDataBy($table, $whereCondition, $autoResponse = true)
+    public function getAllDataBy($table, $whereCondition, $autoResponse = true, $pagination = false, $data = [])
     {
         if ($table != "" && $whereCondition != "") {
             $sql = "SELECT * FROM {$table} WHERE {$whereCondition}";
             if ($autoResponse) {
-                self::executeQuery($sql);
+                self::executeQuery($sql, $data, $pagination, $table);
             } else {
-                return self::executeQueryNoResponse($sql);
+                return self::executeQueryNoResponse($sql, $data, $pagination, $table);
             }
         } else {
             self::genericApiResponse([
@@ -125,9 +125,10 @@ class FrameworkMain
                     $countData = isset($request->countData) && $request->countData != 0 ? $request->countData : 10;
     
                     $page = (int) $page;
-                    $countData = (int) $countData;    
+                    $countData = (int) $countData; 
                     
-                    $compliteData = (object) self::executeQueryNoResponse($sql);
+                    $infoSql = explode('WHERE', $sql);
+                    $compliteData = (object) self::executeQueryNoResponse($infoSql[0], $data);
                     
                     $hasNexPage = $compliteData->totalElements > ($page * $countData);
                     $hasPrePage = $page > 1;
