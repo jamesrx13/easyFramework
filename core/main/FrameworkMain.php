@@ -93,9 +93,9 @@ class FrameworkMain
         if ($table != "" && $whereCondition != "") {
             $sql = "SELECT * FROM {$table} WHERE {$whereCondition}";
             if ($autoResponse) {
-                self::executeQuery($sql, $data, $pagination, $table);
+                self::executeQuery($sql, $data, $pagination);
             } else {
-                return self::executeQueryNoResponse($sql, $data, $pagination, $table);
+                return self::executeQueryNoResponse($sql, $data, $pagination);
             }
         } else {
             self::genericApiResponse([
@@ -125,10 +125,9 @@ class FrameworkMain
                     $countData = isset($request->countData) && $request->countData != 0 ? $request->countData : 10;
     
                     $page = (int) $page;
-                    $countData = (int) $countData; 
+                    $countData = (int) $countData;    
                     
-                    $infoSql = explode('WHERE', $sql);
-                    $compliteData = (object) self::executeQueryNoResponse($infoSql[0], $data);
+                    $compliteData = (object) self::executeQueryNoResponse(explode('WHERE',$sql)[0]);
                     
                     $hasNexPage = $compliteData->totalElements > ($page * $countData);
                     $hasPrePage = $page > 1;

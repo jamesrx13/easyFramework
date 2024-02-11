@@ -166,9 +166,9 @@ class FrameworkOrm
         return $this->frameworkMain->getAllData(static::TABLE, $autoResponse, $pagination);
     }
 
-    public function getAllBy($whereCondition, $data = [], $autoResponse = true, $pagination = false)
+    public function getAll($autoResponse = true, $pagination = false)
     {
-        return $this->frameworkMain->getAllDataBy(static::TABLE, $whereCondition, $autoResponse, $pagination, $data);
+        return $this->frameworkMain->getAllData(static::TABLE, $autoResponse, $pagination);
     }
 
     public function getPrimaryColum()
