@@ -108,7 +108,18 @@ class FrameworkOrm
 
             if (isset($columnDetails['relation'])) {
                 $relationModel = new $columnDetails['relation'];
-                $relations[] = "ALTER TABLE " .  $table . " ADD COLUMN " . $columnName . " INT NOT NULL, ADD CONSTRAINT " . 'fk_' . $table . '_' . $columnName .  " FOREIGN KEY (" . $columnName . ") REFERENCES " . $relationModel::TABLE . " (id) ON DELETE CASCADE ON UPDATE CASCADE;";
+                $primaryColum = $relationModel->getPrimaryColum();
+
+                $null = ' NULL';
+
+                if(isset($columnDetails['nullable']) && !$columnDetails['nullable']){
+                    $null = ' NOT NULL';
+                }
+
+                $relation = "ALTER TABLE " .  $table . " ADD COLUMN " . $columnName . " INT {$null}, ADD CONSTRAINT " . 'fk_' . $table . '_' . $columnName .  " FOREIGN KEY (" . $columnName . ") REFERENCES " . $relationModel::TABLE . " ({$primaryColum}) ON DELETE CASCADE ON UPDATE CASCADE;";
+
+
+                $relations[] = $relation;
                 continue;
             }
 
@@ -183,6 +194,11 @@ class FrameworkOrm
     public function save($autoResponse = true)
     {
         $table = static::TABLE;
+
+        if (array_key_exists('createdBy', static::ARRAY_MAPPER)) {
+            $this->createdBy = (int) $this->frameworkMain->getUser()->id;
+        }
+
         $colums = implode(', ', self::getColums());
         $values = implode(', ', self::getValues());
 
@@ -204,6 +220,10 @@ class FrameworkOrm
 
         if (array_key_exists('updated_at', static::ARRAY_MAPPER)) {
             $this->updated_at = date('Y-m-d H:i:s');
+        }
+
+        if (array_key_exists('updatedBy', static::ARRAY_MAPPER)) {
+            $this->updatedBy = (int) $this->frameworkMain->getUser()->id;
         }
 
         $colums = self::getColums();
@@ -248,10 +268,10 @@ class FrameworkOrm
         }
     }
 
-    public function executeMainQuery($sql, $data = [], $pagination = false)
+    public function executeMainQuery($sql)
     {
         $sql = str_replace(':table', static::TABLE, $sql);
-        return $this->frameworkMain->executeQueryNoResponse($sql, $data, $pagination);
+        return $this->frameworkMain->executeQueryNoResponse($sql);
     }
 
     public function getTable()

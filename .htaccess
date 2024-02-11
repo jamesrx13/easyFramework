@@ -1,5 +1,6 @@
 <IfModule mod_rewrite.c>
     RewriteEngine On
+    #ESTO DEBE QUITARSE O MODIFICARSE EN PRODUCCIÓN
     RewriteBase /easyFramework/
 
     # Excluir la regla de reescritura para URLs que contienen "api/uploads/"

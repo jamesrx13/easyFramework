@@ -160,6 +160,10 @@ class JwtModel extends FrameworkOrm
         return $dataToken;
     }
 
+    public function getUserId(){
+        return $this->getTokenData()['userId'];
+    }
+
     public function generateToken($tokenType, $userID){
 
         if(!key_exists($tokenType, self::TIME_BY_TYPE)){
