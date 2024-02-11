@@ -16,9 +16,9 @@ class DemoController
         
         $searchParams = (object) Utils::getRequestParams(['search']);
 
-        $resp = $model->getAllBy("name LIKE :filter", false, true, [
+        $resp = $model->getAllBy("name LIKE :filter", [
             ':filter' => "%{$searchParams->search}%",
-        ]);
+        ], false, true,);
         
         $data = $resp['data'];
         $newData = [];
@@ -122,6 +122,7 @@ class DemoController
             'list' => [
                 'fnt' => 'list',
                 'method' => 'GET',
+                'auth' => true,
             ],
             'created' => [
                 'fnt' => 'createdFnt',
