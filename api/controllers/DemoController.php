@@ -13,19 +13,22 @@ class DemoController
     public static function list()
     {
         $model = new DemoModel();
-        $resp = $model->getAll(false, true);
+        
+        $searchParams = (object) Utils::getRequestParams(['search']);
+
+        $resp = $model->getAllBy("name LIKE :filter", false, true, [
+            ':filter' => "%{$searchParams->search}%",
+        ]);
         
         $data = $resp['data'];
         $newData = [];
 
         foreach($data as $register){
-            $register['imageUrl'] = Utils::getMainUrl() . $register['imageUrl'];
+            $register['imageUrl'] = Utils::getMainUrl(true) . $register['imageUrl'];
             $newData[] = $register;
         }
 
         $resp['data'] = $newData;
-
-        Utils::sendEmail('rudasmarinjf@gmail.com', 'Correo demo', 'Este es un mensaje xD', true);
 
         FrameworkMain::genericApiResponse($resp);
     }
@@ -105,7 +108,7 @@ class DemoController
     {
         // Se establece la ruta por defecto
         if ($operation == '') {
-            $operation = 'list';
+            // $operation = 'list';
         }
 
         $editAndCreatedAccess = [
