@@ -3,6 +3,7 @@
 namespace api\models;
 
 use core\main\FrameworkOrm;
+use core\main\models\UserModel;
 
 class DemoModel extends FrameworkOrm
 {
@@ -22,6 +23,16 @@ class DemoModel extends FrameworkOrm
         'imageUrl' => [
             'type' => 'longtext',
             'nullable' => false,
+        ],
+        'createdBy' => [
+            'type' => 'int',
+            'nullable' => false,
+            'relation' => UserModel::class,
+        ],
+        'updatedBy' => [
+            'type' => 'int',
+            'relation' => UserModel::class,
+            'nullable' => true,
         ],
         'created_at' => [
             'type' => 'datetime',

@@ -4,6 +4,8 @@ namespace core\main;
 
 use core\config\GlobalConfig as gloablConfig;
 use core\ApplicationClass;
+use core\main\models\JwtModel;
+use core\main\models\UserModel;
 use core\utils\Utils;
 use PDO;
 
@@ -280,5 +282,11 @@ class FrameworkMain
     {
         $header = 'HTTP_' . str_replace('-', '_', strtoupper($header));
         return isset($_SERVER[$header]) ? $_SERVER[$header] : false;
+    }
+
+    public static function getUser(){
+        $jwtModel = new JwtModel();
+        $jwtModel->token = FrameworkMain::getRequestHeader(Utils::getEnv('HEADER_TOKEN'));
+        return new UserModel($jwtModel->getUserId());
     }
 }
