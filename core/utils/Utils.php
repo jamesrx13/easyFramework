@@ -156,7 +156,7 @@ class Utils
     {
         $data = [];
         foreach ($files as $param) {
-            if ($_FILES[$param]) {
+            if (isset($_FILES[$param])) {
                 $data[$param] = $_FILES[$param];
                 $data[$param]['key'] = $param;
             }
