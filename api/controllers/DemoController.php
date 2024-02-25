@@ -16,8 +16,14 @@ class DemoController
         
         $searchParams = (object) Utils::getRequestParams(['search']);
 
+        $toSearch = '';
+
+        if(isset($searchParams->search)){
+            $toSearch = $searchParams->search;
+        }
+
         $resp = $model->getAllBy("name LIKE :filter", [
-            ':filter' => "%{$searchParams->search}%",
+            ':filter' => "%{$toSearch}%",
         ], false, true,);
         
         $data = $resp['data'];
