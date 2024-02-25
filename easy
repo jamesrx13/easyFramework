@@ -1,2 +1,2 @@
 #!/bin/bash
-php FrameworkConsole.php "$@"
+php ./core/main/FrameworkConsole.php "$@"
