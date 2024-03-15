@@ -12,7 +12,8 @@ class GlobalConfig
     {
         return [
             "Content-type: application/json",
-            "Access-Control-Allow-Origin: *"
+            "Access-Control-Allow-Origin: " . Utils::getEnv('CONTROL_ORIGIN'),
+            "Access-Control-Allow-Headers: " . Utils::getEnv('HEADER_TOKEN'),
         ];
     }
 

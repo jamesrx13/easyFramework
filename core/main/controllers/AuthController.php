@@ -342,6 +342,18 @@ class AuthController
         ]);
     }
 
+    public static function verifyToken() {
+        $jwtModel = new JwtModel();
+        $jwtModel->token = FrameworkMain::getRequestHeader(Utils::getEnv('HEADER_TOKEN'));
+
+        $isValidToken = $jwtModel->validateToken();
+
+        FrameworkMain::genericApiResponse([
+            'status' => $isValidToken,
+            'data' => $isValidToken ? (new UserModel(((object) $jwtModel->getTokenData())->userId))->publicData() : new UserModel()
+        ]);
+    }
+
     public static function routes($operation)
     {
         // Se establece la ruta por defecto
@@ -410,6 +422,10 @@ class AuthController
                 'method' => 'POST',
                 'auth' => true,
                 'roles' => $adminOpt,
+            ],
+            'verifyToken' => [
+                'fnt' => 'verifyToken',
+                'method' => 'POST',
             ],
             // 'resetPassword' => [
             //     'fnt' => 'resetPassword',
