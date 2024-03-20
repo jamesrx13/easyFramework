@@ -3,12 +3,15 @@
 namespace core\main\controllers;
 
 use core\main\FrameworkMain;
+use core\main\FrameworkOrm;
 use core\main\models\JwtModel;
 use core\main\models\UserModel;
 use core\utils\Utils;
 
 class AuthController
 {
+
+    const FOLDER_PROFILE_UPLOAD = 'users/profile';
 
     public function __construct()
     {
@@ -86,13 +89,36 @@ class AuthController
             'last_name',
         ];
 
+        $files = [
+            'profilePhoto'
+        ];
+
         if (Utils::validateRequestParams($requiredParams)) {
             $values = Utils::getRequestParams($requiredParams);
+
             $userModel = new UserModel();
+
+            if($userModel->existUser($values)){
+                FrameworkMain::genericApiResponse([
+                   'status' => false,
+                   'msg' => "The user {$values['user_name']} or email {$values['email']} already exist"
+                ]);
+            }
+            
             $userModel->load(null, $values);
+            
+            if(Utils::validateRequestFiles($files)){
+                $userModel->profilePhoto = Utils::uploadAccess(
+                    Utils::getRequestFiles($files), 
+                    FrameworkMain::IMAGES_FORMAT, 
+                    self::FOLDER_PROFILE_UPLOAD, 
+                )[0];
+            }
+            
             $userModel->password = FrameworkMain::hashPassword($userModel->password);
-            $userModel->save();
+            $userModel->save();            
         }
+        
     }
 
     public static function customUserRegister()
@@ -106,8 +132,24 @@ class AuthController
             'rol',
         ];
 
+        $files = [
+            'profilePhoto'
+        ];
+
         if (Utils::validateRequestParams($requiredParams)) {
-            $values = (object) Utils::getRequestParams($requiredParams);
+            $values = Utils::getRequestParams($requiredParams);
+            $files = Utils::getRequestFiles($files);
+            
+            $userModel = new UserModel();
+            
+            if($userModel->existUser($values)){
+                FrameworkMain::genericApiResponse([
+                    'status' => false,
+                    'msg' => "The user {$values['user_name']} or email {$values['email']} already exist"
+                ]);
+            }
+
+            $values = (object) $values;
 
             if(!key_exists($values->rol, UserModel::USERS_ROL_PLACEHOLDER)){
                 FrameworkMain::genericApiResponse([
@@ -116,8 +158,16 @@ class AuthController
                 ]);
             }
 
-            $userModel = new UserModel();
             $userModel->load(null, $values);
+
+            if(Utils::validateRequestFiles($files)){
+                $userModel->profilePhoto = Utils::uploadAccess(
+                    Utils::getRequestFiles($files), 
+                    FrameworkMain::IMAGES_FORMAT, 
+                    self::FOLDER_PROFILE_UPLOAD, 
+                )[0];
+            }
+
             $userModel->password = FrameworkMain::hashPassword($userModel->password);
             $userModel->save();
         }
@@ -131,6 +181,10 @@ class AuthController
             'name',
             'last_name',
             'password',
+        ];
+
+        $files = [
+            'profilePhoto'
         ];
 
         if (Utils::validateRequestParams($requiredParams)) {
@@ -148,6 +202,17 @@ class AuthController
 
                 if (FrameworkMain::verifyPassword($values->password, $userModel->password)) {
                     $userModel->load(null, $values);
+
+                    if(Utils::validateRequestFiles($files)){
+
+                        $userModel->profilePhoto = Utils::uploadAccess(
+                            Utils::getRequestFiles($files), 
+                            FrameworkMain::IMAGES_FORMAT, 
+                            self::FOLDER_PROFILE_UPLOAD, 
+                            Utils::getFileName($userModel->profilePhoto),
+                        )[0];
+                    }
+
                     $userModel->password = FrameworkMain::hashPassword($userModel->password);
                     $userModel->update();
                 } else {

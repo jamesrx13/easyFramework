@@ -66,6 +66,10 @@ class UserModel extends FrameworkOrm
             'type' => 'text',
             'nullable' => false,
         ],
+        'profilePhoto' => [
+            'type' => 'text',
+            'nullable' => true,
+        ],
         'rol' => [
             'type' => 'int',
             'nullable' => false,
@@ -98,7 +102,6 @@ class UserModel extends FrameworkOrm
             die();
         }
 
-
         $data = $response->data;
 
         if (empty($data)) {
@@ -117,6 +120,10 @@ class UserModel extends FrameworkOrm
         
         $userData['statusPlaceholder'] = self::STATUS_PLACEHOLDER[$userData['status']];
         $userData['rolPlaceholder'] = self::USERS_ROL_PLACEHOLDER[$userData['rol']];
+
+        if($userData['profilePhoto']){
+            $userData['profilePhoto'] =  Utils::getMainUrl(Utils::is_local()) . $userData['profilePhoto'];
+        }
         
         unset($userData['frameworkMain']);
         unset($userData['password']);

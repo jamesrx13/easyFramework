@@ -322,4 +322,11 @@ class Utils
             return false;
         }
     }
+
+    public static function getFileName(String $fileName){
+        $filename = explode('/', $fileName);
+        $filename = $filename[count($filename) - 1];
+        $filename = explode('.', $filename);
+        return $filename[0];
+    }
 }
