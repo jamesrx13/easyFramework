@@ -127,14 +127,16 @@ class Utils
         return true;
     }
 
-    public static function validateRequestFiles($requireFiles)
+    public static function validateRequestFiles($requireFiles, $endProcess = true)
     {
         foreach ($requireFiles as $param) {
             if (!isset($_FILES[$param]) || empty($_FILES[$param])) {
-                FrameworkMain::genericApiResponse([
-                    "status" => false,
-                    "msg" => "El archivo '{$param}' es requerido.",
-                ]);
+                if ($endProcess) {
+                    FrameworkMain::genericApiResponse([
+                        "status" => false,
+                        "msg" => "El archivo '{$param}' es requerido.",
+                    ]);
+                }
                 return false;
             }
         }

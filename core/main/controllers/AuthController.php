@@ -107,7 +107,7 @@ class AuthController
             
             $userModel->load(null, $values);
             
-            if(Utils::validateRequestFiles($files)){
+            if(Utils::validateRequestFiles($files, false)){
                 $userModel->profilePhoto = Utils::uploadAccess(
                     Utils::getRequestFiles($files), 
                     FrameworkMain::IMAGES_FORMAT, 
@@ -160,7 +160,7 @@ class AuthController
 
             $userModel->load(null, $values);
 
-            if(Utils::validateRequestFiles($files)){
+            if(Utils::validateRequestFiles($files, false)){
                 $userModel->profilePhoto = Utils::uploadAccess(
                     Utils::getRequestFiles($files), 
                     FrameworkMain::IMAGES_FORMAT, 
@@ -201,20 +201,38 @@ class AuthController
             if ($userModel->id != null) {
 
                 if (FrameworkMain::verifyPassword($values->password, $userModel->password)) {
+
+                    if($userModel->existUser((array) $values) && $userModel->user_name != $values->user_name){
+                        FrameworkMain::genericApiResponse([
+                            'status' => false,
+                            'msg' => 'The user name or email is already in use',
+                        ]);
+                    }
+
                     $userModel->load(null, $values);
 
-                    if(Utils::validateRequestFiles($files)){
+                    if(Utils::validateRequestFiles($files, false)){
+
+                        $fileName = $userModel->profilePhoto !== null ? Utils::getFileName($userModel->profilePhoto) : '';
 
                         $userModel->profilePhoto = Utils::uploadAccess(
                             Utils::getRequestFiles($files), 
                             FrameworkMain::IMAGES_FORMAT, 
                             self::FOLDER_PROFILE_UPLOAD, 
-                            Utils::getFileName($userModel->profilePhoto),
+                            $fileName,
                         )[0];
                     }
 
                     $userModel->password = FrameworkMain::hashPassword($userModel->password);
-                    $userModel->update();
+                    
+                    $userModel->update(false);
+
+                    FrameworkMain::genericApiResponse([
+                        'status' => true,
+                        'msg' => 'Your user has been updated',
+                        'data' => $userModel->publicData()
+                    ]);
+
                 } else {
                     Utils::UserIncorrectPassword();
                 }
