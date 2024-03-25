@@ -3,7 +3,6 @@
 namespace core\main\controllers;
 
 use core\main\FrameworkMain;
-use core\main\FrameworkOrm;
 use core\main\models\JwtModel;
 use core\main\models\UserModel;
 use core\utils\Utils;
@@ -69,6 +68,50 @@ class AuthController
             } else {
                 Utils::UserNotFound();
             }
+        }
+    }
+
+    public static function userList(){
+
+        $jwtModel = new JwtModel();
+        $jwtModel->token = FrameworkMain::getRequestHeader(Utils::getEnv('HEADER_TOKEN'));
+
+        $currentUser = new UserModel($jwtModel->getUserId());
+
+        if($currentUser->id){
+
+            $searchParams = (object) Utils::getRequestParams(['search']);
+
+            $toSearch = '';
+    
+            if(isset($searchParams->search)){
+                $toSearch = $searchParams->search;
+            }
+
+            $userList = $currentUser->getAllBy("
+                (id != :currentUserId) 
+                AND (user_name LIKE :filter 
+                OR email LIKE :filter 
+                OR name LIKE :filter 
+                OR last_name LIKE :filter
+                OR CONCAT(name, ' ', last_name) LIKE :filter)",
+                [
+                    ':currentUserId' => $currentUser->id,
+                    ':filter' => "%{$toSearch}%",
+                ],
+                false,
+                true
+            );
+
+            foreach($userList['data'] as $key => $user){
+                $currentUser->load(null, $user);
+                $userList['data'][$key] = $currentUser->publicData();
+            }
+
+            FrameworkMain::genericApiResponse($userList);
+
+        } else {
+            Utils::UserNotFound();
         }
     }
 
@@ -459,6 +502,12 @@ class AuthController
             'register' => [
                 'fnt' => 'userRegister',
                 'method' => 'POST',
+            ],
+            'list' => [
+                'fnt' => 'userList',
+                'method' => 'GET',
+                'auth' => true,
+                'roles' => $adminOpt,
             ],
             'registerCustomUser' => [
                 'fnt' => 'customUserRegister',

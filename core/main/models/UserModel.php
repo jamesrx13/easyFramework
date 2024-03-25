@@ -62,10 +62,6 @@ class UserModel extends FrameworkOrm
             'type' => 'varchar',
             'nullable' => false,
         ],
-        'email' => [
-            'type' => 'text',
-            'nullable' => false,
-        ],
         'profilePhoto' => [
             'type' => 'text',
             'nullable' => true,
@@ -127,7 +123,6 @@ class UserModel extends FrameworkOrm
         
         unset($userData['frameworkMain']);
         unset($userData['password']);
-        unset($userData['rol']);
         unset($userData['status']);
 
         return $userData;

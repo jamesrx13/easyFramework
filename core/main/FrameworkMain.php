@@ -133,6 +133,7 @@ class FrameworkMain
                     
                     $hasNexPage = $compliteData->totalElements > ($page * $countData);
                     $hasPrePage = $page > 1;
+                    $totalPages = ceil($compliteData->totalElements / $countData);
 
                     $offset = ($page - 1) * $countData;
     
@@ -148,6 +149,7 @@ class FrameworkMain
                             "status" => true,
                             "totalElements" => count($queryResult),
                             "totalRecords" => $compliteData->totalElements,
+                            "totalPages" => $totalPages,
                         ];
                         
                         if($hasNexPage){
