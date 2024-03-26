@@ -94,7 +94,7 @@ class UserModel extends FrameworkOrm
         $response = (object) $this->getAllBy("user_name = '$user_name' OR email = '$user_name' LIMIT 1");
 
         if (!$response->status) {
-            Utils::RouteNotFound();
+            Utils::UserNotFound();
             die();
         }
 
@@ -123,7 +123,6 @@ class UserModel extends FrameworkOrm
         
         unset($userData['frameworkMain']);
         unset($userData['password']);
-        unset($userData['status']);
 
         return $userData;
     }

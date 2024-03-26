@@ -480,6 +480,111 @@ class AuthController
         ]);
     }
 
+    public static function updateUser() {
+        $requiredParams = [
+            'id',
+            'user_name',
+            'email',
+            'name',
+            'last_name',
+            'validate_password',
+        ];
+
+        $files = [
+            'profilePhoto'
+        ];
+
+        if(Utils::validateRequestParams($requiredParams)){
+
+            $values = (object) Utils::getRequestParams($requiredParams);
+            $model = new UserModel($values->id);
+
+            $jwtModel = new JwtModel();
+            $jwtModel->token = FrameworkMain::getRequestHeader(Utils::getEnv('HEADER_TOKEN'));
+            $currentUser = new UserModel($jwtModel->getUserId());
+
+            if(!FrameworkMain::verifyPassword($values->validate_password, $currentUser->password)){
+                FrameworkMain::genericApiResponse([
+                   'status' => false,
+                   'msg' => 'Invalid admin password',
+                ]);
+            }
+            
+            if($model->id){
+                
+                if($model->existUser((array) $values) && $model->user_name != $values->user_name){
+                    FrameworkMain::genericApiResponse([
+                       'status' => false,
+                       'msg' => 'The user name or email already exist',
+                    ]);
+                }
+                
+                $model->user_name = $values->user_name;
+                $model->email = $values->email;
+                $model->name = $values->name;
+                $model->last_name = $values->last_name;
+
+                if(Utils::validateRequestFiles($files, false)){
+
+                    $fileName = $model->profilePhoto !== null ? Utils::getFileName($model->profilePhoto) : '';
+
+                    $model->profilePhoto = Utils::uploadAccess(
+                        Utils::getRequestFiles($files), 
+                        FrameworkMain::IMAGES_FORMAT, 
+                        self::FOLDER_PROFILE_UPLOAD, 
+                        $fileName,
+                    )[0];
+                }
+
+                $model->update();
+                
+            } else {
+                Utils::UserNotFound();
+            }
+
+        }
+    }
+
+    public static function changeUserPassword() {
+        $requiredParams = [
+            'id',
+            'new_password',
+            'comfirm_password',
+            'validate_password',
+        ];
+
+        if(Utils::validateRequestParams($requiredParams)){
+            $values = (object) Utils::getRequestParams($requiredParams);
+            $model = new UserModel($values->id);
+
+            $jwtModel = new JwtModel();
+            $jwtModel->token = FrameworkMain::getRequestHeader(Utils::getEnv('HEADER_TOKEN'));
+            $currentUser = new UserModel($jwtModel->getUserId());
+            
+            if(!FrameworkMain::verifyPassword($values->validate_password, $currentUser->password)){
+                FrameworkMain::genericApiResponse([
+                   'status' => false,
+                   'msg' => 'Invalid admin password',
+                ]);
+            }
+
+            if($values->new_password != $values->comfirm_password){
+                FrameworkMain::genericApiResponse([
+                   'status' => false,
+                   'msg' => 'Passwords not mach',
+                ]);
+            }
+
+            if($model->id){
+                $model->password = FrameworkMain::hashPassword($values->new_password);
+                $model->update();
+            } else {
+                Utils::UserNotFound();
+            }
+
+        }
+    }
+
     public static function routes($operation)
     {
         // Se establece la ruta por defecto
@@ -558,6 +663,18 @@ class AuthController
             'verifyToken' => [
                 'fnt' => 'verifyToken',
                 'method' => 'POST',
+            ],
+            'updateUser' => [
+                'fnt' => 'updateUser',
+                'method' => 'POST',
+                'auth' => true,
+                'roles' => $adminOpt,
+            ],
+            'changeUserPassword' => [
+                'fnt' => 'changeUserPassword',
+                'method' => 'POST',
+                'auth' => true,
+                'roles' => $adminOpt,
             ],
             // 'resetPassword' => [
             //     'fnt' => 'resetPassword',

@@ -260,7 +260,7 @@ class Utils
                 }
 
                 // Mover el archivo al servidor 
-                $newFileName = $name != null ? $name : uniqid();
+                $newFileName = $name != null && $name != '' ? $name : uniqid();
                 if ($folder != '/') {
                     $folder = '/' . $folder . '/';
                 }
