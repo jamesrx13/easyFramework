@@ -181,7 +181,6 @@ class AuthController
 
         if (Utils::validateRequestParams($requiredParams)) {
             $values = Utils::getRequestParams($requiredParams);
-            $files = Utils::getRequestFiles($files);
             
             $userModel = new UserModel();
             
@@ -204,6 +203,7 @@ class AuthController
             $userModel->load(null, $values);
 
             if(Utils::validateRequestFiles($files, false)){
+                $files = Utils::getRequestFiles($files);
                 $userModel->profilePhoto = Utils::uploadAccess(
                     Utils::getRequestFiles($files), 
                     FrameworkMain::IMAGES_FORMAT, 
