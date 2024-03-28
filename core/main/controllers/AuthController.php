@@ -340,7 +340,8 @@ class AuthController
 
     public static function generateCustomToken(){
         $requiredParams = [
-            'tokenType'
+            'tokenType',
+            'description',
         ];
 
         if(Utils::validateRequestParams($requiredParams)){
@@ -361,6 +362,7 @@ class AuthController
             $jwtModel->token = $newToken;
             $jwtModel->user_id = $userId;
             $jwtModel->isSessionToken = '0';
+            $jwtModel->description = $values->description;
             $jwtModel->save(false);
 
             FrameworkMain::genericApiResponse([
@@ -368,6 +370,84 @@ class AuthController
                 'token' => $newToken,
                 'msg' => JwtModel::TOKEN_TEXT[$values->tokenType]
             ]);
+        }
+    }
+
+    public static function getMyCustomsTokens(){
+        $jwtModel = new JwtModel();
+        $jwtModel->token = FrameworkMain::getRequestHeader(Utils::getEnv('HEADER_TOKEN'));
+        $userId = $jwtModel->getUserId();
+
+        $searchParams = (object) Utils::getRequestParams(['search']);
+
+        $toSearch = '';
+    
+        if(isset($searchParams->search)){
+            $toSearch = $searchParams->search;
+        }
+
+        $response = $jwtModel->getAllBy(
+            "(user_id = :userId) 
+            AND (isSessionToken = :isSessionToken)
+            AND (description LIKE :filter OR token LIKE :filter)", 
+            [
+                ':userId' => $userId,
+                ':isSessionToken' => '0',
+                ':filter' => "%{$toSearch}%",
+            ], 
+        false, true);
+
+        if($response['status']){
+            foreach($response['data'] as $key => $value){
+                $response['data'][$key]['status'] = (bool) $value['status'];
+            }
+        }
+
+        FrameworkMain::genericApiResponse($response);
+
+    }
+
+    public static function deleteToken(){
+        $requiredParams = [
+            'tokenId',
+            'password',
+        ];
+
+        if(Utils::validateRequestParams($requiredParams)){
+            $values = (object) Utils::getRequestParams($requiredParams);
+
+            $jwtModel = new JwtModel($values->tokenId);
+
+            if($jwtModel->id){
+                $jwtModel->token = FrameworkMain::getRequestHeader(Utils::getEnv('HEADER_TOKEN'));
+                $user = new UserModel($jwtModel->getUserId());
+
+                if($user->id){
+
+                    if(FrameworkMain::verifyPassword($values->password, $user->password)){
+                        $jwtModel->delete();
+                    } else {
+                        FrameworkMain::genericApiResponse([
+                            'status' => false,
+                            'msg' => 'Invalid password'
+                        ]);
+                    }
+
+                } else {
+                    FrameworkMain::genericApiResponse([
+                        'status' => false,
+                        'msg' => 'User not found'
+                    ]);
+                }
+
+            } else {
+                FrameworkMain::genericApiResponse([
+                    'status' => false,
+                    'msg' => 'Token not found'
+                ]);
+            }
+            
+
         }
     }
 
@@ -672,6 +752,18 @@ class AuthController
             ],
             'changeUserPassword' => [
                 'fnt' => 'changeUserPassword',
+                'method' => 'POST',
+                'auth' => true,
+                'roles' => $adminOpt,
+            ],
+            'getMyCustomsTokens' => [
+                'fnt' => 'getMyCustomsTokens',
+                'method' => 'GET',
+                'auth' => true,
+                'roles' => $adminOpt,
+            ],
+            'deleteToken' => [
+                'fnt' => 'deleteToken',
                 'method' => 'POST',
                 'auth' => true,
                 'roles' => $adminOpt,

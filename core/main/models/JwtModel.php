@@ -57,6 +57,10 @@ class JwtModel extends FrameworkOrm
             'nullable' => false,
             'default' => true,
         ],
+        'description' => [
+            'type' => 'text',
+            'nullable' => true,
+        ],
         'status' => [
             'type' => 'boolean',
             'nullable' => false,
