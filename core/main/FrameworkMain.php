@@ -7,7 +7,10 @@ use core\ApplicationClass;
 use core\main\models\JwtModel;
 use core\main\models\UserModel;
 use core\utils\Utils;
+
 use PDO;
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
 
 spl_autoload_register(function ($className) {
     $fileName = str_replace("\\", '/', $className) . '.php';
@@ -40,7 +43,10 @@ class FrameworkMain
     ];
 
     const ALL_FILE_FORMATS = ['*' => '*'];
-    
+
+
+
+
 
     function __construct()
     {
@@ -120,24 +126,24 @@ class FrameworkMain
         if ($status) {
             try {
 
-                if($pagination){
-                
+                if ($pagination) {
+
                     $request = (object) Utils::getRequestParams(['page', 'countData']);
 
                     $page = isset($request->page) && $request->page != 0 ? $request->page : 1;
                     $countData = isset($request->countData) && $request->countData != 0 ? $request->countData : 10;
-    
+
                     $page = (int) $page;
-                    $countData = (int) $countData;    
-                    
+                    $countData = (int) $countData;
+
                     $compliteData = (object) self::executeQueryNoResponse($sql, $data);
-                    
+
                     $hasNexPage = $compliteData->totalElements > ($page * $countData);
                     $hasPrePage = $page > 1;
                     $totalPages = ceil($compliteData->totalElements / $countData);
 
                     $offset = ($page - 1) * $countData;
-    
+
                     $sql .= " LIMIT {$countData} OFFSET {$offset}";
                 }
 
@@ -145,19 +151,19 @@ class FrameworkMain
 
                 if ($prepareQuery->execute($data)) {
                     $queryResult = $prepareQuery->fetchAll(PDO::FETCH_ASSOC);
-                    if($pagination){
+                    if ($pagination) {
                         $response = [
                             "status" => true,
                             "totalElements" => count($queryResult),
                             "totalRecords" => $compliteData->totalElements,
                             "totalPages" => $totalPages,
                         ];
-                        
-                        if($hasNexPage){
+
+                        if ($hasNexPage) {
                             $response['nexPage'] = $page + 1;
                         }
 
-                        if($hasPrePage){
+                        if ($hasPrePage) {
                             $response['prePage'] = $page - 1;
                         }
 
@@ -169,9 +175,8 @@ class FrameworkMain
                             "status" => true,
                             "totalElements" => count($queryResult),
                             "data" => $queryResult,
-                        ];                        
+                        ];
                     }
-
                 } else {
                     return [
                         "status" => false,
@@ -287,9 +292,45 @@ class FrameworkMain
         return isset($_SERVER[$header]) ? $_SERVER[$header] : false;
     }
 
-    public static function getUser(){
+    public static function getUser()
+    {
         $jwtModel = new JwtModel();
         $jwtModel->token = FrameworkMain::getRequestHeader(Utils::getEnv('HEADER_TOKEN'));
         return new UserModel($jwtModel->getUserId());
+    }
+
+    public static function getRelativeApiPathFile(String $fileName)
+    {
+        $relativePath = '';
+        $initialPath = './api/';
+
+        $iterador = new RecursiveDirectoryIterator($initialPath);
+
+        if (!strpos($fileName, '.php')) {
+            $fileName .= '.php';
+        }
+
+        foreach (new RecursiveIteratorIterator($iterador) as $file) {
+            if (basename($file) == $fileName) {
+                $relativePath = realpath($file);
+            }
+        }
+
+        if ($relativePath == '') {
+            return false;
+        } else {
+            $relativePath = str_replace('\\', '/', $relativePath);
+            $relativePath = $initialPath . explode('api/', $relativePath)[1];
+
+            $nameSpace = str_replace('/', '\\', $relativePath);
+            $nameSpace = '\\api' . explode('api', $nameSpace)[1];
+            $nameSpace = explode('.php', $nameSpace)[0];
+            $nameSpace = str_replace('.', '', $nameSpace);
+
+            return (object) [
+                'path' => $relativePath,
+                'namespace' => $nameSpace
+            ];
+        }
     }
 }

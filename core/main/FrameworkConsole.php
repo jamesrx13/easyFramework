@@ -7,6 +7,10 @@ use core\main\models\JwtModel;
 use core\main\models\UserModel;
 use core\utils\Utils;
 
+use RecursiveDirectoryIterator;
+use RecursiveIteratorIterator;
+use RegexIterator;
+
 include 'FrameworkMain.php';
 
 // Variables de entorno
@@ -53,49 +57,66 @@ class FrameworkConsole
         }
     }
 
+    private function getModelsInDirectory($directory)
+    {
+        $allModels = [];
+
+        $dir = new RecursiveDirectoryIterator($directory);
+        $iter = new RecursiveIteratorIterator($dir, RecursiveIteratorIterator::SELF_FIRST);
+        $files = new RegexIterator($iter, '/^.+\.php$/i');
+        foreach ($files as $file) {
+            $file = $file->getPathname();
+            $file = explode('/', $file);
+            $file = $file[count($file) - 1];
+            $file = explode('\\', $file);
+            $allModels[] = $file[count($file) - 1];
+        }
+
+        return $allModels;
+    }
+
     private function migrateAll()
     {
+        $mainPath = './api/models/';
+        $allModels = Utils::getFiles($mainPath);
 
-        $allModels = Utils::getFiles('./api/models');
+        foreach ($allModels as $i => $value) {
+            if (!strpos($value, '.php')) {
+                unset($allModels[$i]);
+                $allModels = array_merge($allModels, $this->getModelsInDirectory($mainPath . $value));
+            }
+        }
 
         foreach ($allModels as $model) {
-            $model_name = str_replace('.php', '', $model);
-            $model = '\api\models\\' . $model_name;
-            if (class_exists($model)) {
-                $model = new $model();;
-                $resp = (object) $this->mainController->executeQueryNoResponse($model->generateTableSql());
-                if ($resp->status) {
-                    echo "Modelo '{$model_name}' migrado con exito.\n";
-                } else {
-                    echo "Error => El modelo '{$model_name}' no se pudo migrar, por favor revisar.\n";
-                    die();
-                }
-            } else {
-                echo "Error => El modelo '{$model_name}' no existe, por favor revisar.\n";
-                die();
-            }
+            $this->migrate($model, true);
         }
     }
 
-    private function migrate($model_name)
+    private function migrate($model_name, $isAll = false)
     {
-        $modelFileName = ucfirst($model_name) . 'Model';
 
-        if (file_exists('./api/models/' . $modelFileName . '.php')) {
+        if (!$isAll) {
+            $model_name = ucfirst($model_name) . 'Model';
+        }
 
-            $model = '\api\models\\' . $modelFileName;
+        $relativeData = $this->mainController->getRelativeApiPathFile($model_name);
+
+        if ($relativeData && file_exists($relativeData->path)) {
+
+            $model = $relativeData->namespace;
+
             if (class_exists($model)) {
                 $model = new $model();
                 $resp = (object) $this->mainController->executeQueryNoResponse($model->generateTableSql());
                 if ($resp->status) {
-                    echo "Modelo '{$model_name}' migrado con exito.";
+                    echo "Modelo '{$model_name}' migrado con exito." . PHP_EOL;
                 } else {
-                    echo "-- El modelo '{$model_name}' no se pudo migrar, por favor revisar --\n";
-                    echo "Error => " . $resp->msg . "\n";
+                    echo "El modelo '{$model_name}' no se pudo migrar, por favor revisar." . PHP_EOL;
+                    echo "Error => " . $resp->msg . PHP_EOL;
                     die();
                 }
             } else {
-                echo "Error => El modelo '{$model_name}' no existe, por favor revisar.";
+                echo "Error => El modelo '{$model_name}' no existe, por favor revisar." . PHP_EOL;
                 die();
             }
         } else {

@@ -24,7 +24,8 @@ class ApiRouter
         return array_key_exists($route, $this->apiRouter);
     }
 
-    public function getMiddlewares(String $route){
+    public function getMiddlewares(String $route)
+    {
         return $this->apiRouter[$route];
     }
 }

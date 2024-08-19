@@ -19,10 +19,6 @@ try {
         $fileName = str_replace("\\", "/", $className) . '.php';
         if (file_exists($fileName)) {
             $fileName = MAIN_URL . $fileName;
-        } elseif (file_exists("api/controllers/" . $fileName)) {
-            $fileName = "api/controllers/" . $fileName;
-        } elseif (file_exists("api/models/" . $fileName)) {
-            $fileName = "api/models/" . $fileName;
         }
         include $fileName;
     });
