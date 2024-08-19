@@ -49,10 +49,11 @@ class FrameworkMain
     }
 
 
-    public static function genericApiResponse($data = [])
+    public static function genericApiResponse($data = [], $statusResponse = 200)
     {
 
         self::setApiHeaders();
+        http_response_code($statusResponse);
 
         if (!empty($data)) {
             echo json_encode($data);
@@ -129,7 +130,7 @@ class FrameworkMain
                     $page = (int) $page;
                     $countData = (int) $countData;    
                     
-                    $compliteData = (object) self::executeQueryNoResponse(explode('WHERE',$sql)[0]);
+                    $compliteData = (object) self::executeQueryNoResponse($sql, $data);
                     
                     $hasNexPage = $compliteData->totalElements > ($page * $countData);
                     $hasPrePage = $page > 1;

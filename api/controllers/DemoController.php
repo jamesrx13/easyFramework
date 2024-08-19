@@ -13,23 +13,23 @@ class DemoController
     public static function list()
     {
         $model = new DemoModel();
-        
+
         $searchParams = (object) Utils::getRequestParams(['search']);
 
         $toSearch = '';
 
-        if(isset($searchParams->search)){
+        if (isset($searchParams->search)) {
             $toSearch = $searchParams->search;
         }
 
         $resp = $model->getAllBy("name LIKE :filter", [
             ':filter' => "%{$toSearch}%",
         ], false, true,);
-        
+
         $data = $resp['data'];
         $newData = [];
 
-        foreach($data as $register){
+        foreach ($data as $register) {
             $register['imageUrl'] = Utils::getMainUrl(true) . $register['imageUrl'];
             $newData[] = $register;
         }
@@ -84,7 +84,7 @@ class DemoController
 
             $model->name = $params->name;
 
-            if(!empty($files) && $model->id != null){
+            if (!empty($files) && $model->id != null) {
                 $currentImagen = explode('/', $model->imageUrl);
                 $currentImagen = explode('.', $currentImagen[count($currentImagen) - 1]);
                 $currentImagen = $currentImagen[0];
@@ -110,11 +110,31 @@ class DemoController
         }
     }
 
+    public static function demoCurl()
+    {
+        $url = 'https://jsonplaceholder.typicode.com/todos/';
+
+        FrameworkMain::genericApiResponse(
+            [
+                'info' => 'Query using CURL',
+                'queryGetResponse' => Utils::cURL(
+                    $url,   // URL
+                    'GET',  // METHOD
+                    [],     // PARAMS (!GET)
+                    [],     // HEADERS
+                    true,   // RETURN RESPONSE IN JSON
+                    10,     // TIMEOUT
+                    true    // DEBUG
+                ),
+            ]
+        );
+    }
+
     public static function routes($operation)
     {
         // Se establece la ruta por defecto
         if ($operation == '') {
-            // $operation = 'list';
+            $operation = 'list';
         }
 
         $editAndCreatedAccess = [
@@ -128,7 +148,6 @@ class DemoController
             'list' => [
                 'fnt' => 'list',
                 'method' => 'GET',
-                'auth' => true,
             ],
             'created' => [
                 'fnt' => 'createdFnt',
@@ -147,6 +166,10 @@ class DemoController
                 'method' => 'GET',
                 'auth' => true,
                 'roles' => $deleteAccess,
+            ],
+            'curlDemo' => [
+                'fnt' => 'demoCurl',
+                'method' => 'GET',
             ],
         ];
 

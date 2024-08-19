@@ -204,7 +204,7 @@ class Utils
 
             // Validar que exista la carpeta de destino en API
             if (!is_dir('/api/uploads')) {
-                @mkdir('./api/uploads/', 0700);
+                @mkdir('./api/uploads/', 0777);
             }
 
             foreach ($allFiles as $currentFile) {
@@ -250,12 +250,12 @@ class Utils
                         $initPath = '';
                         foreach ($folder as $fold) {
                             $initPath .= $fold . '/';
-                            @mkdir('./api/uploads/' . $initPath, 0700);
+                            @mkdir('./api/uploads/' . $initPath, 0777);
                         }
                         $folder = trim($initPath, '/');
                     } else {
                         $folder = $folder[0];
-                        @mkdir('./api/uploads/' . $folder, 0700);
+                        @mkdir('./api/uploads/' . $folder, 0777);
                     }
                 }
 
@@ -325,10 +325,81 @@ class Utils
         }
     }
 
-    public static function getFileName(String $fileName){
+    public static function getFileName(String $fileName)
+    {
         $filename = explode('/', $fileName);
         $filename = $filename[count($filename) - 1];
         $filename = explode('.', $filename);
         return $filename[0];
+    }
+
+    public static function cURL(
+        String $url,
+        String $method = 'GET',
+        array $formData = null,
+        array $headers = null,
+        bool $responseAsObj = true,
+        int $timeout = 5,
+        bool $isLocal = false
+    ) {
+
+        $ch = curl_init();
+
+        curl_setopt($ch, CURLOPT_URL, $url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch, CURLOPT_CONNECTTIMEOUT, $timeout);
+
+        if ($isLocal) {
+            curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+            curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        }
+
+        // Agregar los headers (son recibidos como array asociativo)
+        if ($headers != null && count($headers) > 0) {
+            $strHeaders = [];
+            foreach ($headers as $key => $value) {
+                $strHeaders[] = $key . ': ' . $value;
+            }
+            curl_setopt($ch, CURLOPT_HTTPHEADER, $strHeaders);
+        }
+
+        // Agregar datos del formulario
+        if (in_array(strtoupper($method), ['POST', 'PUT', 'DELETE', 'PATCH'])) {
+            if ($formData === null) {
+                return [
+                    'status' => false,
+                    'msg' => 'Datos del formulario no propocionados.',
+                ];
+            }
+            $fields_string = http_build_query($formData);
+            curl_setopt($ch, CURLOPT_POST, 1);
+            curl_setopt($ch, CURLOPT_POSTFIELDS, $fields_string);
+        }
+
+        $data = curl_exec($ch);
+
+        // Manejo de errores de cURL
+        if ($data === false) {
+            return [
+                'status' => false,
+                'msg' => 'Error en la solicitud cURL: ' . curl_error($ch),
+            ];
+        }
+
+        curl_close($ch);
+
+        // Decodificación del JSON si se solicita como objeto
+        if ($responseAsObj) {
+            $decodedData = json_decode($data);
+            if ($decodedData === null) {
+                return [
+                    'status' => false,
+                    'msg' => 'Error al decodificar el JSON de la respuesta',
+                ];
+            }
+            return $decodedData;
+        }
+
+        return $data;
     }
 }
