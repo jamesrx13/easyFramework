@@ -34,6 +34,7 @@ class FrameworkConsole
     {
         $command = isset($argv[1]) ? $argv[1] : null;
         $param = isset($argv[2]) ? $argv[2] : null;
+        $param2 = isset($argv[3]) ? $argv[3] : null;
 
         if ($command == null) {
             echo 'Error => Una instrucción como minimo es requerida.';
@@ -51,6 +52,14 @@ class FrameworkConsole
             }
         } elseif ($command == 'auth') {
             $this->auth();
+        } elseif ($command == 'delete') {
+            if($param){
+                $this->delete($param, $param2);
+            } else {
+                echo "Error => La función 'delete' requiere un parámetro, por ejemplo: 'delete %MODEL_NAME%'";
+                die;
+            }
+
         } else {
             echo "Error => El comando '{$command}' no existe, por favor revisar la documentación.";
             die();
@@ -152,6 +161,61 @@ class FrameworkConsole
             ],
         ]);
         die();
+    }
+
+    private function delete($model_name, $file)
+    {
+
+        $modelFileName = ucfirst($model_name) . 'Model';
+        $relativeData = $this->mainController->getRelativeApiPathFile($modelFileName);
+        $resp = (Object) [];
+
+        if ($relativeData && file_exists($relativeData->path)) {
+
+            $model = $relativeData->namespace;
+            if (class_exists($model)) {
+
+                $existTable = (object) $this->mainController->executeQueryNoResponse( 
+                    "SELECT COUNT(*) AS table_count 
+                    FROM INFORMATION_SCHEMA.TABLES 
+                    WHERE TABLE_SCHEMA = DATABASE() 
+                    AND TABLE_NAME = '{$model_name}';"
+                ); 
+
+                print_r($existTable);
+                
+                if(isset($existTable->totalElements) && $existTable->totalElements == 1){
+                    //$resp = (object) $this->mainController->executeQueryNoResponse("DROP TABLE IF EXISTS {$model_name};");  
+                } else {
+                    $resp->status = false;
+                    $resp->msg = "La tabla '{$model_name}' no existe en la base de datos, por favor revisar.";
+                }
+
+                print_r($resp);
+                exit;
+
+                if($file != null && $file == 'rmfile'){
+                    if(unlink($relativeData->path)){
+                        echo "Fichero '{$modelFileName}' eliminado con exito." . PHP_EOL;
+                    } else {
+                        echo "El fiechero '{$modelFileName}' no se pudo eliminar, por favor revisar." . PHP_EOL;
+                    }
+                }
+
+                if ($resp->status) {
+                    echo "Modelo '{$model_name}' eliminado con exito." . PHP_EOL;
+                } else {
+                    echo "Error => " . $resp->msg . PHP_EOL;
+                    die();
+                }
+            } else {
+                echo "Error => El modelo '{$model_name}' no existe, por favor revisar." . PHP_EOL;
+                die();
+            }
+        } else {
+            echo "Error => El modelo '{$model_name}' no existe, por favor revisar." . PHP_EOL;
+            die();
+        }
     }
 }
 
